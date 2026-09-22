@@ -1,0 +1,92 @@
+[
+  {
+    "name": "continent",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "country",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "state_province",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "subdivision_type",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "city",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "total_population",
+    "type": "INTEGER",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "male_population_est",
+    "type": "INTEGER",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "female_population_est",
+    "type": "INTEGER",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "popular_language",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "avg_births_per_year_est",
+    "type": "INTEGER",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "avg_deaths_per_year_est",
+    "type": "INTEGER",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "country_male_share",
+    "type": "FLOAT",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "birth_rate_per_1000",
+    "type": "FLOAT",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "death_rate_per_1000",
+    "type": "FLOAT",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "capital",
+    "type": "BOOLEAN",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "area_km2",
+    "type": "FLOAT",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "pop_density_per_km2",
+    "type": "FLOAT",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "area_source",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  }
+]
