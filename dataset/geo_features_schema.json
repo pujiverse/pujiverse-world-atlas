@@ -1,0 +1,46 @@
+[
+ {
+  "name": "category",
+  "type": "STRING"
+ },
+ {
+  "name": "feature_type",
+  "type": "STRING"
+ },
+ {
+  "name": "name",
+  "type": "STRING"
+ },
+ {
+  "name": "area_km2",
+  "type": "FLOAT"
+ },
+ {
+  "name": "countries",
+  "type": "STRING"
+ },
+ {
+  "name": "country_count",
+  "type": "INTEGER"
+ },
+ {
+  "name": "continents",
+  "type": "STRING"
+ },
+ {
+  "name": "center_lat",
+  "type": "FLOAT"
+ },
+ {
+  "name": "center_lon",
+  "type": "FLOAT"
+ },
+ {
+  "name": "wikidata_id",
+  "type": "STRING"
+ },
+ {
+  "name": "area_source",
+  "type": "STRING"
+ }
+]

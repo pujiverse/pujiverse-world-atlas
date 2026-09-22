@@ -1,0 +1,1174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Pujiverse World Atlas: explore world population from a 3D globe down to continents, countries, states and cities, with area, density, 2015–2025 history, and oceans, seas, lakes and islands.">
+<meta name="theme-color" content="#05070f">
+<meta property="og:title" content="Pujiverse World Atlas">
+<meta property="og:description" content="Interactive world population explorer — globe to city, with area, density and water bodies.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 34'%3E%3Ccircle cx='17' cy='17' r='15' fill='%230b1633' stroke='%23f09a3e' stroke-width='1.6'/%3E%3Cellipse cx='17' cy='17' rx='6.5' ry='15' fill='none' stroke='%23f09a3e'/%3E%3Cpath d='M2 17h30' stroke='%23f09a3e'/%3E%3C/svg%3E">
+<title>Pujiverse World Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --space:#05070f; --space-2:#0a1122; --space-line:#1a2440; --on-space:#e7ecf6; --on-space-dim:#8d9ab4;
+  --accent:#f09a3e; --accent-soft:rgba(240,154,62,.18);
+  --sheet:#eef1f6; --card:#ffffff; --ink:#121826; --muted:#5a6477; --line:#dde2ea;
+  --accent-ink:#a4520a; --up:#16794f; --down:#b8402b; --row-hover:#fff4e6; --bar:#d7dde7; --male:#3d6fb6; --female:#c2577a;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --sheet:#0e1524; --card:#152036; --ink:#e8ecf3; --muted:#9ba7bc; --line:#26324c;
+    --accent-ink:#f5ad62; --up:#4cc38a; --down:#f07a63; --row-hover:#1c2945; --bar:#2a3857; --male:#79a6e8; --female:#e58aa9;
+  }
+}
+:root[data-theme="dark"]{
+  --sheet:#0e1524; --card:#152036; --ink:#e8ecf3; --muted:#9ba7bc; --line:#26324c;
+  --accent-ink:#f5ad62; --up:#4cc38a; --down:#f07a63; --row-hover:#1c2945; --bar:#2a3857; --male:#79a6e8; --female:#e58aa9;
+}
+html,body{height:100%}
+body{background:var(--space);color:var(--on-space);font:14px/1.45 var(--f-body);-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.app{height:100%;display:grid;grid-template-rows:auto 1fr;gap:12px;padding:12px 16px 16px}
+/* ---------- top bar ---------- */
+.topbar{display:grid;grid-template-columns:auto minmax(200px,340px) 1fr;align-items:center;gap:20px;color-scheme:dark}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand svg{flex:none}
+.brand b{font:700 20px/1 var(--f-display);letter-spacing:-.01em}
+.brand small{display:block;font:500 11px/1.2 var(--f-mono);color:var(--on-space-dim);letter-spacing:.06em;text-transform:uppercase;margin-top:3px}
+.search{position:relative}
+.search input{width:100%;height:38px;border-radius:10px;border:1px solid var(--space-line);background:var(--space-2);color:var(--on-space);padding:0 12px 0 34px;font:inherit}
+.search input::placeholder{color:var(--on-space-dim)}
+.search input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.search .ico{position:absolute;left:11px;top:11px;opacity:.6;pointer-events:none}
+.results{position:absolute;z-index:40;top:44px;left:0;right:0;background:#0d1528;border:1px solid var(--space-line);border-radius:12px;padding:6px;box-shadow:0 18px 40px rgba(0,0,0,.5);max-height:360px;overflow:auto}
+.results button{display:flex;width:100%;align-items:center;gap:10px;text-align:left;border:0;background:none;padding:8px 10px;border-radius:8px;cursor:pointer}
+.results button[aria-selected="true"],.results button:hover{background:#18233d}
+.results .rt{font:500 10px/1 var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--accent);width:62px;flex:none}
+.results .rn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.results .rs{color:var(--on-space-dim);font-size:12px}
+.results .rp{font:12px var(--f-mono);color:var(--on-space-dim)}
+.results .empty{padding:10px;color:var(--on-space-dim)}
+
+.timeline{display:flex;align-items:center;gap:14px;min-width:0}
+.play{flex:none;width:38px;height:38px;border-radius:50%;border:1px solid var(--space-line);background:var(--space-2);display:grid;place-items:center;cursor:pointer;transition:border-color .2s, box-shadow .2s}
+.play:hover{border-color:var(--accent);box-shadow:0 0 16px var(--accent-soft)}
+.track{flex:1;min-width:0;position:relative;padding-top:2px}
+.track input{width:100%;-webkit-appearance:none;appearance:none;background:transparent;height:22px;margin:0;cursor:pointer}
+.track input::-webkit-slider-runnable-track{height:4px;border-radius:4px;background:linear-gradient(90deg,var(--accent) var(--pct,100%),var(--space-line) var(--pct,100%))}
+.track input::-moz-range-track{height:4px;border-radius:4px;background:var(--space-line)}
+.track input::-moz-range-progress{height:4px;border-radius:4px;background:var(--accent)}
+.track input::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid var(--accent);margin-top:-6px;box-shadow:0 0 12px rgba(240,154,62,.7)}
+.track input::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:#fff;border:3px solid var(--accent);box-shadow:0 0 12px rgba(240,154,62,.7)}
+.ticks{display:flex;justify-content:space-between;font:10.5px/1 var(--f-mono);color:var(--on-space-dim);padding:0 3px}
+.ticks span{width:0;display:flex;justify-content:center;cursor:pointer}
+.ticks span.on{color:var(--accent)}
+.yearbig{flex:none;font:700 30px/1 var(--f-display);letter-spacing:-.02em;font-variant-numeric:tabular-nums;min-width:74px;text-align:right}
+
+/* ---------- main ---------- */
+.main{min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.stage{position:relative;min-height:0;border-radius:18px;overflow:hidden;background:radial-gradient(120% 90% at 30% 20%,#0d1733 0%,#060a16 55%,#04060d 100%);border:1px solid var(--space-line);touch-action:none}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#map{cursor:grab}
+#map.pointer{cursor:pointer}
+.modes{position:absolute;top:12px;right:12px;display:flex;background:rgba(8,13,28,.8);border:1px solid var(--space-line);border-radius:10px;padding:3px;backdrop-filter:blur(6px);z-index:3}
+.modes button{border:0;background:none;padding:6px 12px;border-radius:7px;font:600 12px/1 var(--f-body);color:var(--on-space-dim);cursor:pointer;letter-spacing:.02em}
+.modes button[aria-pressed="true"]{background:var(--accent);color:#1a0f02}
+.hint{position:absolute;left:14px;top:14px;font:500 11px/1.3 var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--on-space-dim);z-index:2;max-width:55%;pointer-events:none}
+.hint b{color:var(--on-space);font-weight:500}
+.legend{position:absolute;left:14px;bottom:14px;z-index:2;background:rgba(8,13,28,.78);border:1px solid var(--space-line);border-radius:10px;padding:8px 10px 6px;min-width:210px;backdrop-filter:blur(6px);pointer-events:none}
+.legend .lt{font:500 10.5px/1 var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--on-space-dim);margin-bottom:6px}
+.legend .lg{height:8px;border-radius:4px}
+.legend .lk{position:relative;height:14px;font:10.5px/14px var(--f-mono);color:var(--on-space-dim)}
+.legend .lk span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.legend .lk span:first-child{transform:none}
+.legend .lk span:last-child{transform:translateX(-100%)}
+.tip{position:absolute;z-index:5;pointer-events:none;background:rgba(10,16,32,.94);border:1px solid rgba(240,154,62,.5);border-radius:10px;padding:7px 10px;font-size:12.5px;box-shadow:0 0 22px rgba(240,154,62,.25);transform:translate(12px,12px);white-space:nowrap}
+.tip b{display:block;font:600 13px var(--f-body)}
+.tip span{font:12px var(--f-mono);color:var(--on-space-dim)}
+.loading{position:absolute;inset:0;display:grid;place-items:center;z-index:6;font:500 12px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--on-space-dim);background:rgba(4,6,13,.4);transition:opacity .4s}
+.loading.gone{opacity:0;pointer-events:none}
+
+/* ---------- panel ---------- */
+.panel{min-height:0;overflow:auto;background:var(--sheet);color:var(--ink);border-radius:18px;color-scheme:light;scrollbar-width:thin}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .panel{color-scheme:dark}}
+:root[data-theme="dark"] .panel{color-scheme:dark}
+.sheet-head{position:sticky;top:0;z-index:4;background:var(--sheet);padding:14px 20px 10px;border-bottom:1px solid var(--line)}
+.crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:2px;font:500 12.5px/1.2 var(--f-body)}
+.crumbs button{border:0;background:none;padding:4px 7px;border-radius:6px;cursor:pointer;color:var(--accent-ink)}
+.crumbs button:hover{background:var(--row-hover)}
+.crumbs .cur{padding:4px 7px;color:var(--ink);font-weight:600}
+.crumbs .sep{color:var(--muted);opacity:.6}
+.content{padding:16px 20px 24px;display:grid;gap:14px}
+.content.enter > *{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+.content.enter > *:nth-child(2){animation-delay:.05s}
+.content.enter > *:nth-child(3){animation-delay:.1s}
+.content.enter > *:nth-child(4){animation-delay:.15s}
+.content.enter > *:nth-child(5){animation-delay:.2s}
+@keyframes rise{from{opacity:.001;transform:translateY(10px)}to{opacity:1;transform:none}}
+.titlerow{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 16px}
+.eyebrow{font:500 11px/1 var(--f-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
+h1{font:700 clamp(26px,3.2vw,38px)/1.02 var(--f-display);letter-spacing:-.02em;margin:0;text-wrap:balance}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;font:500 10.5px/1 var(--f-mono);letter-spacing:.04em;text-transform:uppercase;padding:5px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:var(--card);white-space:nowrap}
+.chip.src{color:var(--accent-ink);border-color:color-mix(in srgb,var(--accent-ink) 35%,transparent)}
+.chip.est{border-style:dashed}
+.chip.cap{background:var(--accent);color:#1a0f02;border-color:var(--accent)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;min-width:0;transition:box-shadow .25s,border-color .25s}
+.tile:hover{border-color:color-mix(in srgb,var(--accent) 55%,var(--line));box-shadow:0 0 0 3px var(--accent-soft)}
+.tile.main{grid-column:1 / -1;display:grid;grid-template-columns:1fr auto;align-items:end;gap:6px 16px}
+.lbl{display:flex;align-items:center;flex-wrap:wrap;gap:6px;font:500 11px/1.2 var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.lbl .est{text-transform:none;letter-spacing:0;font-style:italic;opacity:.85}
+.num{font:500 19px/1.2 var(--f-mono);font-variant-numeric:tabular-nums;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.num.long{font-size:15.5px;letter-spacing:-.02em}
+.tile.main .num{font:700 clamp(30px,3.6vw,44px)/1 var(--f-display);letter-spacing:-.02em;margin-top:8px}
+.delta{font:500 12px/1.2 var(--f-mono);font-variant-numeric:tabular-nums;margin-top:4px;color:var(--muted)}
+.delta.up{color:var(--up)} .delta.down{color:var(--down)}
+.tile.main .delta{font-size:13px;text-align:right}
+.mf{grid-column:1 / -1;display:flex;height:6px;border-radius:6px;overflow:hidden;background:var(--bar)}
+.mf i{display:block;height:100%;transition:width .7s cubic-bezier(.2,.7,.2,1)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;min-width:0}
+.cardhead{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.cardhead h2{font:600 15px/1.2 var(--f-display);margin:0;letter-spacing:-.005em}
+.seg{display:flex;gap:2px;background:var(--sheet);border-radius:8px;padding:2px;flex-wrap:wrap}
+.seg button{border:0;background:none;padding:4px 8px;border-radius:6px;font:500 11.5px/1 var(--f-body);color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.chart{position:relative}
+.chart svg{display:block;width:100%;height:170px;overflow:visible}
+.chart .ax text{font:10.5px var(--f-mono);fill:var(--muted)}
+.chart .grid line{stroke:var(--line)}
+.chart .ctip{position:absolute;pointer-events:none;background:var(--ink);color:var(--card);font:12px var(--f-mono);padding:4px 7px;border-radius:6px;transform:translate(-50%,-130%);white-space:nowrap}
+.note{font-size:12px;color:var(--muted);margin-top:6px}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 18px}
+.facts dt{font:500 10.5px/1.2 var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.facts dd{margin:3px 0 0;font-weight:500}
+.tablewrap{overflow-x:auto;margin:0 -16px;padding:0 16px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{font:500 10.5px/1.2 var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;padding:8px 8px;border-bottom:1px solid var(--line);white-space:nowrap;position:relative}
+th.n,td.n{text-align:right}
+th button{all:unset;cursor:pointer;display:inline-flex;gap:4px;align-items:center}
+th button:focus-visible{outline:2px solid var(--accent)}
+th .ar{opacity:.35;font-size:9px}
+th[aria-sort] .ar{opacity:1;color:var(--accent-ink)}
+td{padding:8px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.n{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:12.5px;white-space:nowrap}
+tbody tr{cursor:pointer;transition:background .15s, box-shadow .15s}
+tbody tr:hover, tbody tr.hot{background:var(--row-hover);box-shadow:inset 3px 0 0 var(--accent)}
+tbody tr.stag{animation:rowin .45s cubic-bezier(.2,.7,.2,1) both}
+@keyframes rowin{from{opacity:.001;transform:translateX(8px)}to{opacity:1;transform:none}}
+td .nm{font-weight:600}
+td .sb{display:block;font-size:11.5px;color:var(--muted)}
+.pbar{display:block;height:3px;border-radius:3px;background:var(--accent);margin-top:5px;opacity:.75}
+.split{display:flex;width:64px;height:6px;border-radius:6px;overflow:hidden;background:var(--bar);margin-left:auto}
+.split i:first-child{background:var(--male)} .split i:last-child{background:var(--female)}
+.mfv{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.dn{color:var(--down)} .upc{color:var(--up)}
+.more{margin-top:10px;border:1px solid var(--line);background:var(--sheet);border-radius:8px;padding:7px 12px;cursor:pointer;font-weight:500}
+.more:hover{border-color:var(--accent)}
+.legendkey{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:4px}
+.legendkey i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.foot{margin:0 20px 22px;padding-top:14px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;font-size:13px;color:var(--muted)}
+.foot b{font:700 14px var(--f-display);color:var(--ink)}
+.foot .mail{display:flex;align-items:center;gap:8px}
+.foot #mail{font:500 13px var(--f-mono);color:var(--ink);user-select:all}
+.foot button{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:12px;font-weight:500}
+.foot button:hover{border-color:var(--accent)}
+.foot p{flex-basis:100%;margin:0;font-size:12px}
+.tile.areas{grid-column:1 / -1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.tile.areas .am{min-width:0}
+.tile.areas .av{font:500 18px/1.25 var(--f-mono);font-variant-numeric:tabular-nums;margin-top:6px;overflow-wrap:anywhere}
+.tile.areas .av small{font-size:11.5px;color:var(--muted)}
+.tile.areas .as{font-size:11.5px;color:var(--muted);margin-top:2px}
+.bars{display:grid;gap:6px}
+.bar{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,2fr) auto;align-items:center;gap:10px;font-size:13px;padding:3px 6px;border-radius:6px;cursor:pointer}
+.bar:hover,.bar.on{background:var(--row-hover)}
+.bar .bn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar.on .bn{font-weight:600}
+.bar .bt{height:8px;background:var(--bar);border-radius:5px;overflow:hidden}
+.bar .bt i{display:block;height:100%;background:#4f9fd6;border-radius:5px}
+.bar.on .bt i{background:var(--accent)}
+.bar .bv{font:12px var(--f-mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.pill{border:1px solid var(--line);background:var(--sheet);border-radius:999px;padding:4px 10px;font-size:12.5px;cursor:pointer;color:var(--ink)}
+.pill:hover{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.pill.off{cursor:default;color:var(--muted)}
+.seg button:disabled{opacity:.4;cursor:default}
+.facts a{color:var(--accent-ink)}
+@media (max-width:560px){.tile.areas{grid-template-columns:1fr 1fr}.bar{grid-template-columns:minmax(0,1fr) 70px auto}}
+.srcnote{font-size:12px;color:var(--muted);line-height:1.5;max-width:65ch}
+
+@media (max-width: 1100px){
+  .topbar{grid-template-columns:auto 1fr}
+  .timeline{grid-column:1 / -1}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width: 860px){
+  .app{height:auto;min-height:100%;display:block}
+  .topbar{grid-template-columns:1fr;gap:10px;margin-bottom:12px}
+  .main{display:block}
+  .stage{height:58vh;min-height:320px;max-height:560px;margin-bottom:12px}
+  .panel{overflow:visible}
+  .sheet-head{top:env(safe-area-inset-top,0px);border-radius:18px 18px 0 0}
+  .ticks span:nth-child(even){visibility:hidden}
+  .legend{min-width:170px}
+  .hint{max-width:60%}
+  .content{padding:14px 16px 20px}
+}
+@media (prefers-reduced-motion: reduce){
+  .content.enter > *, tbody tr.stag{animation:none}
+}
+[hidden]{display:none!important}
+body{margin:0}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><defs><radialGradient id="bg1" cx="35%" cy="30%"><stop offset="0" stop-color="#3a78b8"/><stop offset="1" stop-color="#0b1633"/></radialGradient></defs><circle cx="17" cy="17" r="15" fill="url(#bg1)" stroke="#f09a3e" stroke-width="1.2"/><ellipse cx="17" cy="17" rx="6.5" ry="15" fill="none" stroke="#f09a3e" stroke-opacity=".7"/><path d="M2 17h30M4.5 10h25M4.5 24h25" stroke="#f09a3e" stroke-opacity=".45" fill="none"/><circle cx="21" cy="12" r="1.8" fill="#ffd9a8"/><circle cx="12" cy="21" r="1.2" fill="#ffd9a8"/></svg>
+      <div><b>Pujiverse</b><small>World Atlas · 2015–2025</small></div>
+    </div>
+    <div class="search" role="combobox" aria-expanded="false" aria-haspopup="listbox" id="searchbox">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="#e7ecf6" stroke-width="1.6"/><path d="M11 11l3.5 3.5" stroke="#e7ecf6" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <input id="q" type="search" placeholder="Search places, seas, lakes, islands" autocomplete="off" aria-label="Search places" aria-controls="results">
+      <div class="results" id="results" role="listbox" hidden></div>
+    </div>
+    <div class="timeline">
+      <button class="play" id="play" aria-label="Play timeline"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path id="playico" d="M3 1.5v11l9-5.5z" fill="#f09a3e"/></svg></button>
+      <div class="track">
+        <input id="year" type="range" min="2015" max="2025" step="1" value="2025" aria-label="Year">
+        <div class="ticks" id="ticks"></div>
+      </div>
+      <div class="yearbig" id="yearbig">2025</div>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="stage" id="stage" aria-label="Interactive world map">
+      <canvas id="stars" aria-hidden="true"></canvas>
+      <canvas id="map"></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="modes" role="group" aria-label="Map view">
+        <button id="m3d" aria-pressed="true">3D globe</button>
+        <button id="m2d" aria-pressed="false">2D map</button>
+      </div>
+      <div class="legend" id="legend"></div>
+      <div class="tip" id="tip" hidden></div>
+      <div class="loading" id="loading">Loading the world…</div>
+    </section>
+    <aside class="panel" id="panel" aria-live="polite">
+      <div class="sheet-head"><nav class="crumbs" id="crumbs" aria-label="Breadcrumb"></nav></div>
+      <div class="content" id="content"></div>
+      <footer class="foot"><div><b>Pujiverse</b> World Atlas</div><div class="mail"><span id="mail">pujiverse@gmail.com</span><button id="copymail" type="button">Copy email</button></div><p>Country figures: World Bank. Cities &amp; coordinates: GeoNames. Borders: Natural Earth.</p></footer>
+    </aside>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script>
+(async function(){
+"use strict";
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = s => document.querySelector(s);
+const fmt = d3.format(',');
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function compact(n){ if(n==null||isNaN(n)) return '—'; const a=Math.abs(n);
+  if(a>=1e9) return (n/1e9).toFixed(a>=1e10?1:2)+' B'; if(a>=1e6) return (n/1e6).toFixed(a>=1e8?0:a>=1e7?1:2)+' M';
+  if(a>=1e3) return (n/1e3).toFixed(a>=1e5?0:1)+' K'; return String(Math.round(n)); }
+const norm = s => (s||'').normalize('NFKD').replace(/[̀-ͯ]/g,'').toLowerCase();
+
+/* ---------------- data ---------------- */
+const getJSON = u => fetch(u).then(r => { if(!r.ok) throw new Error(u); return r.json(); });
+let core, w50t, w110t;
+try { [core, w110t, w50t] = await Promise.all([getJSON('data/core.json'), getJSON('data/world110.json'), getJSON('data/world50.json')]); }
+catch(e){ $('#loading').textContent = 'The map data did not load. Reload the page to try again.'; return; }
+const YEARS = core.years, NY = YEARS.length, LAST = NY-1;
+let yi = LAST;
+const CONT = core.continents; const contBy = new Map(CONT.map(c => [c.n, c]));
+const COUNTRIES = core.countries; const cBy = new Map(COUNTRIES.map(c => [c.c, c]));
+CONT.forEach(ct => ct.list = COUNTRIES.filter(c => c.ct === ct.n));
+const WORLD = {h:{}}; for(const k of 'pmfbd') WORLD.h[k] = YEARS.map((_,i) => d3.sum(CONT, c => c.h[k][i]));
+
+function prepWorld(t){
+  const feats = topojson.feature(t, t.objects.countries).features;
+  for(const f of feats){ f.c = f.id ? cBy.get(f.id) : null; f.ct = f.c ? f.c.ct : (f.properties.n === 'Antarctica' ? 'Antarctica' : null); f.b = d3.geoBounds(f); }
+  return {feats, mesh: topojson.mesh(t, t.objects.countries, (a,b) => a !== b)};
+}
+const W110 = prepWorld(w110t), W50 = prepWorld(w50t);
+const featsByC = d3.group(W50.feats.filter(f => f.id), f => f.id);
+WORLD.sa = d3.sum(CONT, c => c.sa); WORLD.la = d3.sum(CONT, c => c.la);
+
+/* oceans, seas, lakes, islands (geo_features.csv) */
+let FEATS = [], featGeo = new Map(), lakeFeats = [], marineFeats = [], islandFeats = [];
+const CAT_ORDER = ['Ocean','Sea & coastal water','Lake','Island'];
+const CAT_PLURAL = {'Ocean':'Oceans','Sea & coastal water':'Seas & coasts','Lake':'Lakes','Island':'Islands'};
+const CAT_ONE = {'Ocean':'Ocean','Sea & coastal water':'Sea','Lake':'Lake','Island':'Island'};
+const featsReady = Promise.all([getJSON('data/features.json'), getJSON('data/water.json')]).then(([rows, wt]) => {
+  FEATS = rows.map((r, i) => ({i, cat:r[0], type:r[1], n:r[2], a:r[3], cs:r[4], cts:r[5], lat:r[6], lon:r[7], wd:r[8], src:r[9]}));
+  const byCat = d3.group(FEATS, f => f.cat);
+  for(const [cat, list] of byCat){ list.sort((a, b) => (b.a || 0) - (a.a || 0)); list.forEach((f, k) => { f.rank = k + 1; f.of = list.length; }); }
+  for(const key of Object.keys(wt.objects)){
+    const fc = topojson.feature(wt, wt.objects[key]).features;
+    for(const f of fc){
+      if(d3.geoArea(f) > 2*Math.PI){ const g = f.geometry; const rev = poly => poly.map(r => r.slice().reverse());
+        if(g.type === 'Polygon') g.coordinates = rev(g.coordinates); else if(g.type === 'MultiPolygon') g.coordinates = g.coordinates.map(rev); }
+      f.b = d3.geoBounds(f); const fi = f.properties.f;
+      if(fi >= 0){ if(!featGeo.has(fi)) featGeo.set(fi, []); featGeo.get(fi).push(f); }
+      if(key.includes('lakes')) lakeFeats.push(f); else if(key.includes('marine')) marineFeats.push(f); else islandFeats.push(f);
+    }
+  }
+  FEATS.forEach(f => IDX.push({t:CAT_ONE[f.cat], n:f.n, k:norm(f.n), sub:f.type + (f.cs.length ? ' · ' + f.cs.slice(0, 2).join(', ') + (f.cs.length > 2 ? '…' : '') : ''), p:f.a || 0, area:true, s:{level:'feature', f:f.i}}));
+  if(['world','continent','country','feature'].includes(sel.level)) renderPanel('year');
+  dirty = true;
+}).catch(() => {});
+
+let places = null, admin = null, adminBy = null;
+const placesReady = Promise.all([getJSON('data/places.json'), getJSON('data/admin1.json')]).then(([p, a]) => {
+  places = p;
+  const feats = topojson.feature(a, a.objects[Object.keys(a.objects)[0]]).features;
+  adminBy = new Map();
+  for(const f of feats){
+    if(d3.geoArea(f) > 2*Math.PI){ // rewind rings drawn the wrong way round
+      const g = f.geometry; const rev = poly => poly.map(r => r.slice().reverse());
+      if(g.type === 'Polygon') g.coordinates = rev(g.coordinates); else if(g.type === 'MultiPolygon') g.coordinates = g.coordinates.map(rev);
+    }
+    f.b = d3.geoBounds(f); adminBy.set(f.properties.id, f);
+  }
+  admin = d3.group(feats, f => f.properties.c);
+  buildSearchPlaces(); onPlacesReady();
+}).catch(() => { places = {states:{}, cities:{}, failed:true}; onPlacesReady(); });
+
+// derived per-country place helpers
+const cache = new Map();
+function countryPlaces(iso){
+  if(!places) return null;
+  if(cache.has(iso)) return cache.get(iso);
+  const states = places.states[iso] || [], cities = places.cities[iso] || [];
+  const byState = states.map(() => []); cities.forEach((r,i) => { if(byState[r[0]]) byState[r[0]].push(i); });
+  const featToState = new Map(); states.forEach((s,si) => (s[9]||[]).forEach(id => { if(!featToState.has(id)) featToState.set(id, si); }));
+  const feats = (admin && admin.get(iso)) || [];
+  const o = {states, cities, byState, featToState, feats};
+  cache.set(iso, o); return o;
+}
+
+/* ---------------- values by level ---------------- */
+const sel = {level:'world', ct:null, c:null, s:null, city:null};
+function ratio(c, y){ return c.h.p[y] / c.h.p[LAST]; }
+function valuesFor(s, y){
+  if(s.level === 'world') return pick(WORLD.h, y);
+  if(s.level === 'continent') return pick(contBy.get(s.ct).h, y);
+  const c = cBy.get(s.c);
+  if(s.level === 'country') return pick(c.h, y);
+  const P = countryPlaces(s.c); if(!P) return {p:null};
+  const r = ratio(c, y);
+  const row = s.level === 'state' ? P.states[s.s] : P.cities[s.city];
+  const o = s.level === 'state' ? {p:row[3], m:row[4], f:row[5], b:row[6], d:row[7]} : {p:row[2], m:row[3], f:row[4], b:row[5], d:row[6]};
+  for(const k in o) o[k] = o[k] == null ? null : Math.round(o[k] * r);
+  return o;
+}
+function areaFor(s){
+  if(s.level === 'world') return {sa:WORLD.sa, la:WORLD.la, src:'Sum of country areas'};
+  if(s.level === 'continent'){ const c = contBy.get(s.ct); return {sa:c.sa, la:c.la, src:'Sum of its countries’ areas'}; }
+  if(s.level === 'country'){ const c = cBy.get(s.c); return {sa:c.sa, la:c.la, src:'World Bank / GeoNames'}; }
+  const P = countryPlaces(s.c); if(!P) return {};
+  if(s.level === 'state'){ const a = P.states[s.s][10]; return {la:a, src: a ? 'Boundary area' : null}; }
+  const a = P.cities[s.city][10]; return {la:a, src: a ? 'Wikidata city limits' : null};
+}
+const fmtA = a => a == null ? '—' : a >= 100 ? fmt(Math.round(a)) : a.toFixed(1);
+const dens = (p, a) => (p == null || !a) ? null : p / a;
+const fmtD = d => d == null ? '—' : d >= 100 ? fmt(Math.round(d)) : d.toFixed(1);
+function pick(h, y){ return {p:h.p[y], m:h.m[y], f:h.f[y], b:h.b[y], d:h.d[y]}; }
+
+/* ---------------- map / projection ---------------- */
+const stage = $('#stage'), cv = $('#map'), ctx = cv.getContext('2d'), scv = $('#stars'), sctx = scv.getContext('2d');
+let W = 0, H = 0, dpr = 1;
+const mixRaw = t => {
+  const A = d3.geoOrthographicRaw, B = d3.geoNaturalEarth1Raw;
+  if(t <= 1e-4) return A; if(t >= 1 - 1e-4) return B;
+  return (x, y) => { const a = A(x, y), b = B(x, y); return [a[0] + (b[0]-a[0])*t, a[1] + (b[1]-a[1])*t]; };
+};
+const mut = d3.geoProjectionMutator(mixRaw);
+const proj = mut(0).precision(0.6);
+const path = d3.geoPath(proj, ctx);
+const SPHERE = {type:'Sphere'}, GRAT = d3.geoGraticule10();
+let mode = 'globe';
+const view = {t:0, scale:200, tx:0, ty:0, rl:-20, rp:-14};
+function applyView(){
+  const t = view.t;
+  mut(t);
+  proj.scale(view.scale).translate([view.tx, view.ty]).rotate([view.rl, view.rp, 0]);
+  if(t < 1e-4) proj.clipAngle(90);
+  else if(t < 0.5) proj.clipAngle(Math.min(179, Math.acos(-t/(1-t)) * 180/Math.PI));
+  else proj.clipAngle(null);
+  proj.clipExtent(t > 0.5 ? [[-20,-20],[W+20,H+20]] : null);
+}
+
+const CONT_VIEW = {
+  'Africa':{lon:18, box:[-19,-36,52,37]}, 'Asia':{lon:88, box:[26,-11,146,56]}, 'Europe':{lon:15, box:[-25,34,45,71]},
+  'North America':{lon:-95, box:[-168,7,-52,72]}, 'South America':{lon:-60, box:[-82,-56,-34,13]},
+  'Oceania':{lon:155, box:[112,-48,190,2]}, 'Antarctica':{lon:0, box:[-180,-90,180,-62]}
+};
+function boxGeom(b){ const pts=[]; for(let i=0;i<=4;i++) for(let j=0;j<=4;j++) pts.push([b[0]+(b[2]-b[0])*i/4, b[1]+(b[3]-b[1])*j/4]); return {type:'MultiPoint', coordinates:pts}; }
+function mainParts(iso){
+  const fs = featsByC.get(iso);
+  if(!fs){ const P = countryPlaces(iso); if(P && P.cities.length) return {type:'MultiPoint', coordinates: padPts(P.cities.map(r => [r[8], r[7]]))}; return null; }
+  const polys = [];
+  for(const f of fs){ const g = f.geometry; (g.type === 'Polygon' ? [g.coordinates] : g.coordinates).forEach(c => { const p = {type:'Polygon', coordinates:c}; polys.push({p, a:d3.geoArea(p), c:d3.geoCentroid(p)}); }); }
+  polys.sort((a,b) => b.a - a.a);
+  const main = polys[0];
+  const keep = polys.filter(q => q === main || (d3.geoDistance(q.c, main.c) < 0.4 && q.a > main.a*0.002));
+  return {type:'MultiPolygon', coordinates: keep.map(q => q.p.coordinates)};
+}
+function padPts(pts){ if(!pts.length) return pts; const out = pts.slice(); const [lo, la] = d3.geoCentroid({type:'MultiPoint', coordinates:pts}); out.push([lo-0.6, la-0.6],[lo+0.6, la+0.6]); return out; }
+function featGeom(i){
+  const gs = featGeo.get(i); if(gs && gs.length) return {type:'FeatureCollection', features:gs};
+  const F = FEATS[i]; if(F && F.lat != null){ const r = Math.max(0.5, Math.sqrt(F.a || 100) / 111 / 1.5); return {type:'MultiPoint', coordinates:[[F.lon - r, F.lat - r],[F.lon + r, F.lat + r]]}; }
+  return {type:'Sphere'};
+}
+function selGeom(s){
+  if(s.level === 'world') return null;
+  if(s.level === 'feature') return featGeom(s.f);
+  if(s.level === 'continent') return boxGeom(CONT_VIEW[s.ct].box);
+  if(s.level === 'country') return mainParts(s.c) || boxGeom(CONT_VIEW[cBy.get(s.c).ct].box);
+  const P = countryPlaces(s.c);
+  if(!P) return mainParts(s.c);
+  const st = P.states[s.s];
+  const fs = (st[9] || []).map(id => adminBy.get(id)).filter(Boolean);
+  if(fs.length) return {type:'FeatureCollection', features: fs};
+  const pts = P.byState[s.s].map(i => [P.cities[i][8], P.cities[i][7]]);
+  return pts.length ? {type:'MultiPoint', coordinates: padPts(pts)} : mainParts(s.c);
+}
+function geomCenter(g, s){
+  if(s.level === 'continent') return [CONT_VIEW[s.ct].lon, (CONT_VIEW[s.ct].box[1]+CONT_VIEW[s.ct].box[3])/2];
+  if(s.level === 'feature'){ const F = FEATS[s.f]; if(F && F.lat != null) return [F.lon, F.lat]; if(g.type === 'Sphere') return [10, 0]; }
+  return d3.geoCentroid(g);
+}
+function flatView(s){
+  const pad = Math.max(22, Math.min(W, H) * (s.level === 'feature' ? 0.2 : 0.07));
+  const ext = [[pad, pad + 26], [W - pad, H - pad - (W < 520 ? 40 : 10)]];
+  if(s.level === 'world'){
+    const tmp = d3.geoNaturalEarth1().rotate([-10,0]).fitExtent([[12, 44],[W-12, H-60]], SPHERE);
+    return {t:1, scale:tmp.scale(), tx:tmp.translate()[0], ty:tmp.translate()[1], rl:-10, rp:0};
+  }
+  const g = selGeom(s); const c = geomCenter(g, s);
+  const tmp = d3.geoNaturalEarth1().rotate([-c[0], 0]).precision(1).fitExtent(ext, g);
+  let sc = tmp.scale(), [tx, ty] = tmp.translate();
+  if(g.type === 'Sphere') return flatView({level:'world'});
+  const maxS = Math.min(W, H) * (s.level === 'country' ? 14 : 55);
+  if(sc > maxS){ tmp.scale(maxS); const p = tmp(c); tx += (W/2 - p[0]); ty += (H/2 - p[1]); sc = maxS; }
+  return {t:1, scale:sc, tx, ty, rl:-c[0], rp:0};
+}
+function globeView(s){
+  const r = Math.min(W, H) * 0.41;
+  if(s.level === 'world') return {t:0, scale:r, tx:W/2, ty:H/2 + 8, rl:view.rl, rp:-14};
+  const c = geomCenter(selGeom(s), s);
+  return {t:0, scale:r, tx:W/2, ty:H/2 + 8, rl:-c[0], rp:Math.max(-60, Math.min(60, -c[1]))};
+}
+let tw = null;
+const ease = d3.easeCubicInOut;
+function tweenTo(to, dur){
+  const from = {...view}; let d = to.rl - from.rl; d = ((d % 360) + 540) % 360 - 180;
+  tw = {from, to:{...to, rl: from.rl + d}, start: performance.now(), dur: reduced ? 1 : dur};
+}
+function targetView(){ return mode === 'flat' ? flatView(sel) : globeView(sel); }
+
+/* color */
+const RAMP = ['#1d2847','#1e4b6c','#23798e','#4ea99a','#b9c479','#f3a24a','#ff6a3c'];
+const interp = d3.interpolateRgbBasis(RAMP);
+const cScale = d3.scaleSequentialLog(interp).domain([3e4, 1.5e9]).clamp(true);
+let sScale = d3.scaleSequentialLog(interp).domain([1e4, 1e7]).clamp(true);
+const alpha = (hex, a) => { const c = d3.color(hex); c.opacity = a; return c + ''; };
+
+/* hover */
+let hover = null; // {type, key}
+function sameHover(a, b){ return a && b && a.type === b.type && a.key === b.key; }
+
+/* ---------------- render ---------------- */
+let dirty = true;
+function render(){
+  applyView();
+  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+  const t = view.t, gk = Math.max(0, 1 - t*1.7);
+  const cx = view.tx, cy = view.ty, r = view.scale;
+  const WD = (t < 0.999) ? W110 : W50;
+  // atmosphere
+  if(gk > 0){
+    const g = ctx.createRadialGradient(cx, cy, r*0.96, cx, cy, r*1.28);
+    g.addColorStop(0, `rgba(96,170,255,${0.38*gk})`); g.addColorStop(0.35, `rgba(70,130,230,${0.12*gk})`); g.addColorStop(1, 'rgba(60,120,220,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, r*1.28, 0, Math.PI*2); ctx.fill();
+  }
+  // ocean
+  ctx.beginPath(); path(SPHERE);
+  if(gk > 0){ const g = ctx.createRadialGradient(cx - r*0.35, cy - r*0.4, r*0.05, cx, cy, r*1.05); g.addColorStop(0, '#1a3566'); g.addColorStop(1, '#070e22'); ctx.fillStyle = g; }
+  else ctx.fillStyle = '#0a1530';
+  ctx.fill();
+  ctx.beginPath(); path(GRAT); ctx.strokeStyle = 'rgba(160,190,255,0.07)'; ctx.lineWidth = 0.6; ctx.stroke();
+
+  const lvl = sel.level, P = (lvl !== 'world' && lvl !== 'continent' && sel.c) ? countryPlaces(sel.c) : null;
+  const drawStates = P && P.feats.length;
+  // countries
+  for(const f of WD.feats){
+    let fill = f.c ? cScale(f.c.h.p[yi]) : '#2b3553', a = 1;
+    if(lvl !== 'world' && lvl !== 'feature'){
+      const cur = lvl === 'continent' ? f.ct === sel.ct : f.id === sel.c;
+      if(!cur) a = (lvl === 'continent') ? 0.26 : (f.ct === cBy.get(sel.c).ct ? 0.4 : 0.2);
+      else if(drawStates) continue;
+    }
+    ctx.beginPath(); path(f); ctx.fillStyle = a < 1 ? alpha(fill, a) : fill; ctx.fill();
+  }
+  ctx.beginPath(); path(WD.mesh); ctx.strokeStyle = 'rgba(4,7,16,0.75)'; ctx.lineWidth = 0.6; ctx.stroke();
+  // lakes
+  if(lakeFeats.length && (t > 0.5 || lvl !== 'world')){
+    ctx.beginPath(); for(const f of lakeFeats) path(f); ctx.fillStyle = '#0d1d3d'; ctx.fill(); ctx.strokeStyle = 'rgba(120,180,255,0.25)'; ctx.lineWidth = 0.5; ctx.stroke();
+  }
+  // selected ocean / sea / lake / island
+  if(lvl === 'feature'){
+    const gs = featGeo.get(sel.f) || [];
+    ctx.beginPath(); gs.forEach(f => path(f)); ctx.fillStyle = 'rgba(110,200,255,0.28)'; ctx.fill();
+    ctx.save(); ctx.shadowColor = 'rgba(110,200,255,0.95)'; ctx.shadowBlur = 12; ctx.strokeStyle = '#a9e2ff'; ctx.lineWidth = 1.6; ctx.stroke(); ctx.restore();
+    const F = FEATS[sel.f]; if(F && F.lat != null){ const p = proj([F.lon, F.lat]); if(p){ ctx.font = '600 12.5px Figtree, system-ui, sans-serif'; ctx.textBaseline = 'middle'; ctx.textAlign = 'center'; label(F.n, p[0], p[1]); ctx.textAlign = 'start'; } }
+  }
+
+  // continent outline
+  if(lvl === 'continent'){
+    ctx.beginPath(); for(const f of WD.feats) if(f.ct === sel.ct) path(f);
+    ctx.strokeStyle = 'rgba(255,214,160,0.55)'; ctx.lineWidth = 0.9; ctx.stroke();
+  }
+  // states
+  if(drawStates){
+    const vals = P.states.map(s => s[3]);
+    for(const f of P.feats){
+      const si = P.featToState.get(f.properties.id);
+      let fill = si == null ? '#27324f' : sScale(vals[si] * ratio(cBy.get(sel.c), yi));
+      let a = 1; if((lvl === 'state' || lvl === 'city') && si !== sel.s) a = 0.55;
+      ctx.beginPath(); path(f); ctx.fillStyle = a < 1 ? alpha(fill, a) : fill; ctx.fill();
+      ctx.strokeStyle = 'rgba(5,8,18,0.7)'; ctx.lineWidth = 0.7; ctx.stroke();
+    }
+    ctx.beginPath(); (featsByC.get(sel.c) || []).forEach(f => path(f)); ctx.strokeStyle = 'rgba(255,214,160,0.6)'; ctx.lineWidth = 1; ctx.stroke();
+    if(lvl === 'state' || lvl === 'city'){
+      ctx.beginPath(); (P.states[sel.s][9] || []).forEach(id => { const f = adminBy.get(id); if(f) path(f); });
+      ctx.save(); ctx.shadowColor = 'rgba(240,154,62,0.9)'; ctx.shadowBlur = 10; ctx.strokeStyle = '#ffd09a'; ctx.lineWidth = 1.6; ctx.stroke(); ctx.restore();
+    }
+  } else if(lvl === 'country' || lvl === 'state' || lvl === 'city'){
+    ctx.beginPath(); (featsByC.get(sel.c) || []).forEach(f => path(f)); ctx.strokeStyle = 'rgba(255,214,160,0.8)'; ctx.lineWidth = 1.2; ctx.stroke();
+  }
+  // cities
+  cityHits = [];
+  if(P && P.cities.length){
+    const inState = lvl === 'state' || lvl === 'city';
+    const idxs = inState ? P.byState[sel.s] : d3.range(P.cities.length);
+    const maxP = d3.max(idxs, i => P.cities[i][2]) || 1;
+    const rs = d3.scaleSqrt().domain([0, maxP]).range(inState ? [2, 16] : [0.6, 7]);
+    const rr = ratio(cBy.get(sel.c), yi);
+    const order = idxs.slice().sort((a, b) => P.cities[b][2] - P.cities[a][2]);
+    for(let k = order.length - 1; k >= 0; k--){
+      const i = order[k], c = P.cities[i]; const p = proj([c[8], c[7]]); if(!p) continue;
+      const rad = rs(c[2] * rr);
+      ctx.beginPath(); ctx.arc(p[0], p[1], rad, 0, Math.PI*2);
+      ctx.fillStyle = inState ? 'rgba(255,196,120,0.82)' : 'rgba(255,205,140,0.55)'; ctx.fill();
+      if(inState){ ctx.strokeStyle = c[9] ? '#ffffff' : 'rgba(40,20,0,0.7)'; ctx.lineWidth = c[9] ? 1.6 : 0.8; ctx.stroke(); cityHits.push({i, x:p[0], y:p[1], r:rad}); }
+    }
+    if(inState){
+      ctx.font = '500 11.5px Figtree, system-ui, sans-serif'; ctx.textBaseline = 'middle';
+      const labelled = order.slice(0, W < 520 ? 4 : 7);
+      if(lvl === 'city' && !labelled.includes(sel.city)) labelled.push(sel.city);
+      for(const i of labelled){ const h = cityHits.find(q => q.i === i); if(!h) continue; label(P.cities[i][1], h.x + h.r + 4, h.y); }
+    }
+  }
+  // selected city pulse
+  if(lvl === 'city' && P){
+    const c = P.cities[sel.city], p = proj([c[8], c[7]]);
+    if(p){ const ph = (performance.now() % 1600) / 1600; ctx.beginPath(); ctx.arc(p[0], p[1], 8 + ph*22, 0, Math.PI*2); ctx.strokeStyle = `rgba(255,190,110,${0.8*(1-ph)})`; ctx.lineWidth = 2; ctx.stroke(); }
+  }
+  // hover highlight
+  if(hover) drawHover(WD, P);
+  // lighting
+  if(gk > 0){
+    ctx.save(); ctx.beginPath(); path(SPHERE); ctx.clip();
+    const g = ctx.createRadialGradient(cx - r*0.4, cy - r*0.45, r*0.1, cx, cy, r*1.02);
+    g.addColorStop(0, `rgba(255,255,255,${0.10*gk})`); g.addColorStop(0.55, 'rgba(0,0,0,0)'); g.addColorStop(1, `rgba(0,0,8,${0.6*gk})`);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.restore();
+  }
+}
+let cityHits = [];
+function label(txt, x, y){ ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(5,8,18,0.85)'; ctx.strokeText(txt, x, y); ctx.fillStyle = '#f2f5fb'; ctx.fillText(txt, x, y); }
+function drawHover(WD, P){
+  ctx.save(); ctx.shadowColor = 'rgba(240,154,62,0.95)'; ctx.shadowBlur = 14; ctx.strokeStyle = '#ffc47f'; ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  if(hover.type === 'continent') WD.feats.forEach(f => { if(f.ct === hover.key) path(f); });
+  else if(hover.type === 'country') WD.feats.forEach(f => { if(f.id === hover.key) path(f); });
+  else if(hover.type === 'feature'){ ctx.strokeStyle = '#a9e2ff'; ctx.shadowColor = 'rgba(110,200,255,0.95)'; (featGeo.get(hover.key) || []).forEach(f => path(f)); }
+  else if(hover.type === 'state' && P) (P.states[hover.key][9] || []).forEach(id => { const f = adminBy.get(id); if(f) path(f); });
+  ctx.stroke();
+  if(hover.type === 'state' && P && !(P.states[hover.key][9] || []).length){ // no boundary: ring its cities
+    P.byState[hover.key].forEach(i => { const p = proj([P.cities[i][8], P.cities[i][7]]); if(p){ ctx.beginPath(); ctx.arc(p[0], p[1], 4, 0, 7); ctx.stroke(); } });
+  }
+  if(hover.type === 'city' && P){
+    const c = P.cities[hover.key], p = proj([c[8], c[7]]);
+    if(p){ const h = cityHits.find(q => q.i === hover.key); ctx.beginPath(); ctx.arc(p[0], p[1], (h ? h.r : 4) + 4, 0, Math.PI*2); ctx.stroke();
+      ctx.shadowBlur = 0; ctx.font = '600 12px Figtree, system-ui, sans-serif'; ctx.textBaseline = 'middle'; label(c[1], p[0] + (h ? h.r : 4) + 7, p[1]); }
+  }
+  ctx.restore();
+}
+
+/* stars */
+let stars = [];
+function makeStars(){ const n = Math.round(W*H/2600); stars = d3.range(n).map(() => ({x:Math.random()*W, y:Math.random()*H, r:Math.random()*1.1 + 0.2, a:Math.random()*0.6 + 0.2, s:Math.random()*0.002 + 0.0006, p:Math.random()*6})); }
+function drawStars(now){
+  sctx.setTransform(dpr,0,0,dpr,0,0); sctx.clearRect(0,0,W,H);
+  for(const s of stars){ const a = s.a * (reduced ? 1 : 0.65 + 0.35*Math.sin(now*s.s + s.p)); sctx.fillStyle = `rgba(220,230,255,${a})`; sctx.fillRect(s.x, s.y, s.r, s.r); }
+}
+
+/* loop */
+let last = performance.now(), dragging = false, pointerInStage = false, lastStars = 0;
+function frame(now){
+  const dt = Math.min(64, now - last); last = now;
+  if(tw){
+    const k = Math.min(1, (now - tw.start) / tw.dur), e = ease(k);
+    for(const key of ['t','scale','tx','ty','rl','rp']) view[key] = tw.from[key] + (tw.to[key] - tw.from[key]) * e;
+    if(k >= 1){ tw = null; view.rl = ((view.rl + 540) % 360) - 180; }
+    dirty = true;
+  } else if(mode === 'globe' && !dragging && !reduced && sel.level === 'world' && !pointerInStage){
+    view.rl += dt * 0.004; dirty = true;
+  }
+  if(sel.level === 'city') dirty = true;
+  if(dirty){ render(); dirty = false; }
+  if(now - lastStars > 60){ drawStars(now); lastStars = now; }
+  requestAnimationFrame(frame);
+}
+
+function resize(){
+  const r = stage.getBoundingClientRect(); W = Math.max(10, r.width); H = Math.max(10, r.height); dpr = Math.min(2, devicePixelRatio || 1);
+  for(const c of [cv, scv]){ c.width = Math.round(W*dpr); c.height = Math.round(H*dpr); }
+  makeStars();
+  if(!tw) Object.assign(view, targetView());
+  else tw.to = {...targetView(), rl: tw.to.rl};
+  dirty = true;
+}
+new ResizeObserver(resize).observe(stage);
+
+/* ---------------- hit testing ---------------- */
+function inBounds(b, lon, lat){ if(lat < b[0][1] - 0.01 || lat > b[1][1] + 0.01) return false; if(b[0][0] <= b[1][0]) return lon >= b[0][0] - 0.01 && lon <= b[1][0] + 0.01; return lon >= b[0][0] || lon <= b[1][0]; }
+function featAt(feats, ll){ for(const f of feats) if(inBounds(f.b, ll[0], ll[1]) && d3.geoContains(f, ll)) return f; return null; }
+function hitTest(x, y){
+  if(tw) return null;
+  const ll = proj.invert([x, y]); if(!ll || isNaN(ll[0]) || isNaN(ll[1])) return null;
+  if(mode === 'globe'){ const f = featAt(W110.feats, ll); return f && f.c ? {type:'country', key:f.id, globe:true} : null; }
+  const lvl = sel.level;
+  if(lvl === 'state' || lvl === 'city'){
+    let best = null, bd = 1e9; for(const h of cityHits){ const d = Math.hypot(h.x - x, h.y - y); if(d < h.r + 5 && d < bd){ bd = d; best = h; } }
+    if(best) return {type:'city', key:best.i};
+  }
+  if(lvl !== 'world' && lvl !== 'continent'){
+    const P = countryPlaces(sel.c);
+    if(P && P.feats.length){ const f = featAt(P.feats, ll); if(f){ const si = P.featToState.get(f.properties.id); return si == null ? null : {type:'state', key:si}; } }
+  }
+  if(lvl === 'world' || lvl === 'continent' || lvl === 'country' || lvl === 'feature'){
+    const lk = featAt(lakeFeats, ll); if(lk && lk.properties.f >= 0) return {type:'feature', key:lk.properties.f};
+  }
+  const f = featAt(W50.feats, ll);
+  if(!f || !f.ct){
+    if(lvl === 'state' || lvl === 'city') return null;
+    const m = featAt(marineFeats, ll); return m && m.properties.f >= 0 ? {type:'feature', key:m.properties.f} : null;
+  }
+  if(lvl === 'world' || lvl === 'feature') return {type:'continent', key:f.ct};
+  if(!f.c) return {type:'continent', key:f.ct};
+  if(lvl === 'continent' && f.ct !== sel.ct) return {type:'continent', key:f.ct};
+  if(f.id === sel.c) return null;
+  return {type:'country', key:f.id};
+}
+const tip = $('#tip');
+function hoverLabel(h){
+  if(!h) return null;
+  if(h.type === 'continent'){ const c = contBy.get(h.key); return [c.n, compact(c.h.p[yi]) + ' people']; }
+  if(h.type === 'country'){ const c = cBy.get(h.key); return [c.n, compact(c.h.p[yi]) + ' · ' + c.ct]; }
+  if(h.type === 'feature'){ const F = FEATS[h.key]; return [F.n, F.type + ' · ' + (F.a ? fmtA(F.a) + ' km²' : 'area not recorded')]; }
+  const P = countryPlaces(sel.c); const r = ratio(cBy.get(sel.c), yi);
+  if(h.type === 'state'){ const s = P.states[h.key]; return [s[0], compact(s[3]*r) + ' in listed cities']; }
+  if(h.type === 'city'){ const c = P.cities[h.key]; return [c[1] + (c[9] ? ' ★' : ''), compact(c[2]*r) + (yi === LAST ? ' · latest available' : ' · est.')]; }
+}
+function setHover(h, fromMap, x, y){
+  if(!sameHover(h, hover)){ hover = h; dirty = true; syncRows(); }
+  cv.classList.toggle('pointer', !!h || mode === 'globe');
+  if(fromMap && h){ const [a, b] = hoverLabel(h); tip.innerHTML = `<b>${esc(a)}</b><span>${esc(b)}</span>`; tip.hidden = false;
+    const tx = Math.min(x, W - 200); tip.style.left = tx + 'px'; tip.style.top = Math.min(y, H - 60) + 'px'; }
+  else tip.hidden = true;
+}
+function syncRows(){
+  document.querySelectorAll('tbody tr.hot').forEach(r => r.classList.remove('hot'));
+  if(!hover) return;
+  const row = document.querySelector(`tbody tr[data-type="${hover.type}"][data-key="${CSS.escape(String(hover.key))}"]`);
+  if(row) row.classList.add('hot');
+}
+
+let down = null;
+cv.addEventListener('pointerdown', e => { down = {x:e.clientX, y:e.clientY, rl:view.rl, rp:view.rp, moved:false}; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener('pointermove', e => {
+  const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  pointerInStage = true;
+  if(down){
+    const dx = e.clientX - down.x, dy = e.clientY - down.y;
+    if(Math.hypot(dx, dy) > 4) down.moved = true;
+    if(down.moved && mode === 'globe' && !tw){ dragging = true; cv.style.cursor = 'grabbing';
+      const k = 90 / view.scale; view.rl = down.rl + dx * k * 0.9; view.rp = Math.max(-75, Math.min(75, down.rp - dy * k * 0.9)); dirty = true; tip.hidden = true; return; }
+  }
+  if(e.pointerType !== 'touch') setHover(hitTest(x, y), true, x, y);
+});
+cv.addEventListener('pointerup', e => {
+  const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  const wasDrag = down && down.moved; down = null; dragging = false; cv.style.cursor = '';
+  if(wasDrag) return;
+  if(mode === 'globe'){ setMode('flat'); return; }
+  const h = hitTest(x, y);
+  if(e.pointerType === 'touch' && h && !sameHover(h, hover)){ /* first tap previews, second tap opens */ setHover(h, true, x, y); return; }
+  if(h) openHover(h);
+});
+cv.addEventListener('pointerleave', () => { pointerInStage = false; if(!down) setHover(null); });
+
+function openHover(h){
+  tip.hidden = true;
+  if(h.type === 'continent') go({level:'continent', ct:h.key});
+  else if(h.type === 'country') go({level:'country', ct:cBy.get(h.key).ct, c:h.key});
+  else if(h.type === 'feature') go({level:'feature', f:h.key});
+  else if(h.type === 'state') go({level:'state', ct:sel.ct, c:sel.c, s:h.key});
+  else if(h.type === 'city'){ const P = countryPlaces(sel.c); go({level:'city', ct:sel.ct, c:sel.c, s:P.cities[h.key][0], city:h.key}); }
+}
+
+/* ---------------- modes ---------------- */
+function setMode(m){
+  if(m === mode) return; mode = m;
+  $('#m3d').setAttribute('aria-pressed', m === 'globe'); $('#m2d').setAttribute('aria-pressed', m === 'flat');
+  setHover(null); tweenTo(targetView(), 1700); updateHint();
+}
+$('#m3d').onclick = () => setMode('globe'); $('#m2d').onclick = () => setMode('flat');
+
+function updateHint(){
+  const h = $('#hint'); const names = {feature:'a continent, sea or lake', world:'a continent, sea or lake', continent:'a country', country:'a state or province', state:'a city', city:'another city'};
+  h.innerHTML = mode === 'globe' ? '<b>Drag</b> to spin · <b>click</b> to unroll the map' : `<b>Click</b> ${names[sel.level]} to zoom in`;
+}
+
+/* ---------------- legend ---------------- */
+function updateLegend(){
+  const L = $('#legend'); let sc, title;
+  const lvl = sel.level; const P = (sel.c && lvl !== 'continent' && lvl !== 'world') ? countryPlaces(sel.c) : null;
+  if(P && P.feats.length){
+    const r = ratio(cBy.get(sel.c), yi); const v = P.states.map(s => s[3]*r).filter(x => x > 0);
+    const lo = Math.max(1000, d3.min(v) || 1e3), hi = Math.max(lo*10, d3.max(v) || 1e6);
+    sScale = d3.scaleSequentialLog(interp).domain([lo, hi]).clamp(true); sc = sScale; title = 'Population in listed cities' + (yi === LAST ? '' : ' (est.)');
+  } else { sc = cScale; title = 'Country population · ' + YEARS[yi]; }
+  const [lo, hi] = sc.domain(); const stops = d3.range(0, 1.001, 0.1).map(k => interp(k)).join(',');
+  const ticks = [lo, Math.sqrt(lo*hi), hi];
+  L.innerHTML = `<div class="lt">${esc(title)}</div><div class="lg" style="background:linear-gradient(90deg,${stops})"></div>
+    <div class="lk">${ticks.map((t, i) => `<span style="left:${i*50}%">${compact(t)}</span>`).join('')}</div>`;
+}
+
+/* ---------------- panel ---------------- */
+const content = $('#content'), panel = $('#panel');
+let lastVals = {p:0, m:0, f:0, b:0, d:0};
+let chartMetric = 'p';
+const sortState = {};
+let listLimit = 150;
+
+function go(ns, opts = {}){
+  Object.assign(sel, {level:'world', ct:null, c:null, s:null, city:null}, ns);
+  hover = null; listLimit = 150; tip.hidden = true;
+  if(mode === 'flat' || sel.level !== 'world') tweenTo(targetView(), sel.level === 'city' ? 900 : 1250);
+  renderCrumbs(); renderPanel('sel'); updateLegend(); updateHint(); dirty = true;
+  if(!opts.keepScroll) panel.scrollTop = 0;
+  if(innerWidth <= 860 && opts.fromList) stage.scrollIntoView({behavior: reduced ? 'auto' : 'smooth', block:'start'});
+}
+function onPlacesReady(){ cache.clear(); if(sel.level !== 'world' && sel.level !== 'continent'){ renderPanel('year'); updateLegend(); if(mode === 'flat') tweenTo(targetView(), 900); } dirty = true; }
+
+function renderCrumbs(){
+  const parts = [{label:'World', s:{level:'world'}}];
+  if(sel.level === 'feature'){ const F = FEATS[sel.f]; parts.push({label:CAT_PLURAL[F.cat], s:{level:'world'}, tab:F.cat}); parts.push({label:F.n, s:null}); }
+  if(sel.ct) parts.push({label:sel.ct, s:{level:'continent', ct:sel.ct}});
+  if(sel.c) parts.push({label:cBy.get(sel.c).n, s:{level:'country', ct:sel.ct, c:sel.c}});
+  const P = sel.c ? countryPlaces(sel.c) : null;
+  if(sel.s != null && P) parts.push({label:P.states[sel.s][0], s:{level:'state', ct:sel.ct, c:sel.c, s:sel.s}});
+  if(sel.city != null && P) parts.push({label:P.cities[sel.city][1], s:null});
+  $('#crumbs').innerHTML = parts.map((p, i) => i === parts.length - 1 ? `<span class="cur" aria-current="page">${esc(p.label)}</span>` : `<button data-i="${i}">${esc(p.label)}</button><span class="sep" aria-hidden="true">›</span>`).join('');
+  $('#crumbs').querySelectorAll('button').forEach(b => b.onclick = () => { const p = parts[+b.dataset.i]; if(p.tab) waterTab = p.tab; go(p.s); if(p.tab) setTimeout(() => $('#watercard')?.scrollIntoView({behavior: reduced ? 'auto' : 'smooth', block:'start'}), 60); });
+}
+
+function deltaHTML(cur, prev, big){
+  if(yi === 0 || cur == null || prev == null || !prev) return `<div class="delta">— no ${YEARS[0]-1} figure</div>`;
+  const d = (cur - prev) / prev * 100; const cls = d > 0.0005 ? 'up' : d < -0.0005 ? 'down' : '';
+  const arrow = d > 0.0005 ? '▲' : d < -0.0005 ? '▼' : '■';
+  return `<div class="delta ${cls}">${arrow} ${Math.abs(d).toFixed(2)}%${big ? ` <span style="color:var(--muted)">vs ${YEARS[yi-1]} (${d >= 0 ? '+' : '−'}${fmt(Math.abs(Math.round(cur - prev)))})</span>` : ''}</div>`;
+}
+function srcChips(){
+  const lvl = sel.level, y = YEARS[yi];
+  if(lvl === 'world' || lvl === 'continent') return `<span class="chip src">Sum of World Bank ${y}</span>`;
+  if(lvl === 'country'){ const c = cBy.get(sel.c); const wb = c.src.startsWith('World Bank');
+    return `<span class="chip src">${esc(wb && c.hist ? 'World Bank ' + y : c.src)}</span>` + (!c.hist && yi !== LAST ? `<span class="chip est">2025 figure held for ${y}</span>` : ''); }
+  if(lvl === 'state') return `<span class="chip src">Listed cities 15k+</span><span class="chip est">${yi === LAST ? 'Totals from dataset' : 'Estimated for ' + y}</span>`;
+  return `<span class="chip src">${yi === LAST ? 'Latest available' : 'Est. from national trend'}</span>`;
+}
+function tilesHTML(v, pv){
+  const lvl = sel.level, estMF = lvl === 'state' || lvl === 'city', estP = (lvl === 'state' || lvl === 'city') && yi !== LAST;
+  const noSex = v.m == null;
+  const mPct = !noSex && v.p ? v.m / (v.m + v.f) * 100 : 50;
+  const t = (k, lbl, est) => `<div class="tile"><div class="lbl">${lbl}${est ? '<span class="est">estimated</span>' : ''}</div><div class="num" data-k="${k}">${v[k] == null ? '—' : ''}</div>${v[k] == null ? '<div class="delta">not reported</div>' : deltaHTML(v[k], pv && pv[k], false)}</div>`;
+  const popLbl = lvl === 'state' ? 'Population in listed cities' : 'Total population';
+  return `<div class="stats">
+    <div class="tile main"><div><div class="lbl">${popLbl}${estP ? '<span class="est">estimated</span>' : ''}</div><div class="num" data-k="p"></div></div>${deltaHTML(v.p, pv && pv.p, true)}
+      ${noSex ? '' : `<div class="mf" title="Male ${mPct.toFixed(1)}% · Female ${(100 - mPct).toFixed(1)}%"><i style="width:${mPct}%;background:var(--male)"></i><i style="width:${100 - mPct}%;background:var(--female)"></i></div>`}</div>
+    ${t('m', 'Male' + (noSex ? '' : ` · ${mPct.toFixed(1)}%`), estMF)}${t('f', 'Female' + (noSex ? '' : ` · ${(100 - mPct).toFixed(1)}%`), estMF)}
+    ${t('b', 'Births / yr', estMF)}${t('d', 'Deaths / yr', estMF)}
+    ${areaStrip(v)}
+  </div>`;
+}
+function areaStrip(v){
+  const A = areaFor(sel), lvl = sel.level;
+  const d = dens(v.p, A.la);
+  const cell = (lbl, val, sub) => `<div class="am"><div class="lbl">${lbl}</div><div class="av">${val}</div>${sub ? `<div class="as">${sub}</div>` : ''}</div>`;
+  let cells = '';
+  if(lvl === 'world' || lvl === 'continent' || lvl === 'country'){
+    cells = cell('Surface area', fmtA(A.sa) + ' <small>km²</small>', A.sa && lvl !== 'world' ? (A.sa / WORLD.sa * 100).toFixed(2) + '% of world' : 'land + inland water')
+      + cell('Land area', fmtA(A.la) + ' <small>km²</small>', A.la ? fmt(Math.round(A.la * 0.386102)) + ' sq mi' : '')
+      + cell('People per km²', fmtD(d), 'of land · ' + YEARS[yi]);
+  } else {
+    const what = lvl === 'state' ? 'Listed-city people per km²' : 'People per km²';
+    cells = cell(lvl === 'state' ? 'Area of ' + esc(countryPlaces(sel.c).states[sel.s][1].toLowerCase()) : 'City area', A.la ? fmtA(A.la) + ' <small>km²</small>' : '—', A.la ? fmt(Math.round(A.la * 0.386102)) + ' sq mi' : 'not recorded')
+      + cell(what, fmtD(d), lvl === 'state' ? 'cities of 15k+ only' : (A.la ? YEARS[yi] : ''))
+      + cell('Area source', A.src ? esc(A.src) : '—', lvl === 'city' ? 'administrative limits' : 'geodesic, WGS84');
+  }
+  return `<div class="tile areas">${cells}</div>`;
+}
+function animateNums(v){
+  content.querySelectorAll('.num[data-k]').forEach(el => {
+    const k = el.dataset.k, to = v[k]; if(to == null) return;
+    el.classList.toggle('long', fmt(Math.round(to)).length > 11);
+    const from = lastVals[k] ?? 0; const t0 = performance.now(), dur = reduced ? 0 : 900;
+    const step = now => { const e = dur ? d3.easeCubicOut(Math.min(1, (now - t0) / dur)) : 1; el.textContent = fmt(Math.round(from + (to - from) * e)); if(e < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  });
+  for(const k of 'pmfbd') if(v[k] != null) lastVals[k] = v[k];
+}
+
+function seriesFor(k){ return YEARS.map((_, i) => valuesFor(sel, i)[k]); }
+const METRICS = [['p','Total'],['m','Male'],['f','Female'],['b','Births'],['d','Deaths']];
+function chartHTML(){
+  const est = sel.level === 'state' || sel.level === 'city';
+  return `<section class="card"><div class="cardhead"><h2>${METRICS.find(m => m[0] === chartMetric)[1]} over time, ${YEARS[0]}–${YEARS[LAST]}</h2>
+    <div class="seg" role="group" aria-label="Chart metric">${METRICS.map(([k, l]) => `<button data-metric="${k}" aria-pressed="${k === chartMetric}">${l}</button>`).join('')}</div></div>
+    <div class="chart" id="chart"></div>
+    <div class="note">${est ? 'Estimated: the 2025 figure scaled by the country’s World Bank population trend.' : sel.level === 'country' && !cBy.get(sel.c).hist ? 'No yearly series for this territory; the 2025 GeoNames figure is shown for every year.' : 'World Bank yearly figures; births and deaths are crude rates × population.'}</div></section>`;
+}
+function drawChart(animate){
+  const el = $('#chart'); if(!el) return;
+  const data = seriesFor(chartMetric).map((v, i) => ({y:YEARS[i], v, i})).filter(d => d.v != null);
+  el.innerHTML = '';
+  if(data.length < 2){ el.innerHTML = '<div class="note">No yearly data for this measure.</div>'; return; }
+  const w = el.clientWidth || 400, h = 170, m = {l:8, r:58, t:14, b:22};
+  const x = d3.scaleLinear().domain([YEARS[0], YEARS[LAST]]).range([m.l, w - m.r]);
+  let [lo, hi] = d3.extent(data, d => d.v); if(lo === hi){ lo *= 0.95; hi = hi*1.05 || 1; } const pad = (hi - lo) * 0.15;
+  const y = d3.scaleLinear().domain([lo - pad, hi + pad]).nice(4).range([h - m.b, m.t]);
+  const svg = d3.select(el).append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'Line chart of the selected measure by year');
+  const defs = svg.append('defs'); const gid = 'ga' + Math.random().toString(36).slice(2, 7);
+  const lg = defs.append('linearGradient').attr('id', gid).attr('x1', 0).attr('y1', 0).attr('x2', 0).attr('y2', 1);
+  lg.append('stop').attr('offset', 0).attr('stop-color', 'var(--accent)').attr('stop-opacity', 0.28);
+  lg.append('stop').attr('offset', 1).attr('stop-color', 'var(--accent)').attr('stop-opacity', 0);
+  const yt = y.ticks(4);
+  svg.append('g').attr('class', 'grid').selectAll('line').data(yt).join('line').attr('x1', m.l).attr('x2', w - m.r).attr('y1', y).attr('y2', y);
+  svg.append('g').attr('class', 'ax').selectAll('text').data(yt).join('text').attr('x', w - m.r + 8).attr('y', d => y(d) + 3.5).text(d => compact(d));
+  svg.append('g').attr('class', 'ax').selectAll('text').data(YEARS.filter((yy, i) => w < 420 ? i % 2 === 0 : true)).join('text')
+    .attr('x', x).attr('y', h - 5).attr('text-anchor', 'middle').text(d => "'" + String(d).slice(2));
+  const area = d3.area().x(d => x(d.y)).y0(h - m.b).y1(d => y(d.v)).curve(d3.curveMonotoneX);
+  const line = d3.line().x(d => x(d.y)).y(d => y(d.v)).curve(d3.curveMonotoneX);
+  svg.append('path').attr('d', area(data)).attr('fill', `url(#${gid})`);
+  const lp = svg.append('path').attr('d', line(data)).attr('fill', 'none').attr('stroke', 'var(--accent-ink)').attr('stroke-width', 2.2).attr('stroke-linecap', 'round');
+  if(animate && !reduced){ const L = lp.node().getTotalLength(); lp.attr('stroke-dasharray', L).attr('stroke-dashoffset', L).transition().duration(1100).ease(d3.easeCubicOut).attr('stroke-dashoffset', 0); }
+  const cur = data.find(d => d.i === yi);
+  if(cur){
+    svg.append('line').attr('x1', x(cur.y)).attr('x2', x(cur.y)).attr('y1', m.t - 4).attr('y2', h - m.b).attr('stroke', 'var(--muted)').attr('stroke-dasharray', '2 3');
+    svg.append('circle').attr('cx', x(cur.y)).attr('cy', y(cur.v)).attr('r', 5).attr('fill', 'var(--card)').attr('stroke', 'var(--accent-ink)').attr('stroke-width', 2.5);
+  }
+  const ct = document.createElement('div'); ct.className = 'ctip'; ct.hidden = true; el.appendChild(ct);
+  const dot = svg.append('circle').attr('r', 3.5).attr('fill', 'var(--accent-ink)').attr('opacity', 0);
+  svg.append('rect').attr('x', m.l).attr('y', 0).attr('width', w - m.l - m.r).attr('height', h).attr('fill', 'transparent')
+    .on('pointermove', ev => { const [px] = d3.pointer(ev); const yr = Math.round(x.invert(px)); const d = data.find(q => q.y === yr); if(!d) return;
+      dot.attr('cx', x(d.y)).attr('cy', y(d.v)).attr('opacity', 1); ct.hidden = false; ct.style.left = (x(d.y) / w * 100) + '%'; ct.style.top = (y(d.v) / h * 170) + 'px'; ct.textContent = `${d.y}: ${fmt(Math.round(d.v))}`; })
+    .on('pointerleave', () => { dot.attr('opacity', 0); ct.hidden = true; })
+    .on('click', ev => { const [px] = d3.pointer(ev); setYear(Math.round(x.invert(px)) - YEARS[0]); });
+}
+
+/* tables */
+function sortRows(rows, cols, id){
+  const st = sortState[id] || (sortState[id] = {k:cols.find(c => c.def)?.k || cols[1].k, dir:-1});
+  const col = cols.find(c => c.k === st.k) || cols[0];
+  rows.sort((a, b) => { const va = col.v(a), vb = col.v(b); if(va == null) return 1; if(vb == null) return -1; return (typeof va === 'string' ? va.localeCompare(vb) : va - vb) * st.dir; });
+  return st;
+}
+function tableHTML(id, cols, rows, type, stagger){
+  const st = sortRows(rows, cols, id);
+  const shown = rows.slice(0, listLimit);
+  return `<div class="tablewrap"><table data-id="${id}"><thead><tr>${cols.map(c => `<th class="${c.num ? 'n' : ''}" ${st.k === c.k ? `aria-sort="${st.dir > 0 ? 'ascending' : 'descending'}"` : ''}><button data-sort="${c.k}">${c.label}<span class="ar">${st.k === c.k ? (st.dir > 0 ? '▲' : '▼') : '↕'}</span></button></th>`).join('')}</tr></thead>
+    <tbody>${shown.map((r, i) => `<tr data-type="${type}" data-key="${esc(r.key)}" tabindex="0" class="${stagger && i < 24 ? 'stag' : ''}" style="${stagger && i < 24 ? `animation-delay:${i*22}ms` : ''}">${cols.map(c => `<td class="${c.num ? 'n' : ''}">${c.html(r)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    ${rows.length > shown.length ? `<button class="more" data-more="1">Show all ${fmt(rows.length)}</button>` : ''}`;
+}
+const dpct = (cur, prev) => { if(yi === 0 || !prev || cur == null) return '<span style="color:var(--muted)">—</span>'; const d = (cur - prev) / prev * 100; return `<span class="${d < 0 ? 'dn' : 'upc'}">${d < 0 ? '▼' : '▲'} ${Math.abs(d).toFixed(2)}%</span>`; };
+
+function listSection(stagger){
+  const lvl = sel.level;
+  if(lvl === 'world'){
+    const tot = WORLD.h.p[yi];
+    const rows = CONT.map(c => ({key:c.n, n:c.n, p:c.h.p[yi], pp:yi ? c.h.p[yi-1] : null, nc:c.nc, cities:c.cities, la:c.la, dn:dens(c.h.p[yi], c.la)}));
+    const max = d3.max(rows, r => r.p);
+    const cols = [
+      {k:'n', label:'Continent', v:r => r.n, html:r => `<span class="nm">${esc(r.n)}</span><span class="pbar" style="width:${Math.max(1, r.p / max * 100)}%"></span>`},
+      {k:'p', label:'Population', num:1, def:1, v:r => r.p, html:r => fmt(r.p)},
+      {k:'sh', label:'Share', num:1, v:r => r.p / tot, html:r => (r.p / tot * 100).toFixed(1) + '%'},
+      {k:'dp', label:'vs prior yr', num:1, v:r => r.pp ? (r.p - r.pp) / r.pp : null, html:r => dpct(r.p, r.pp)},
+      {k:'la', label:'Land km²', num:1, v:r => r.la, html:r => fmtA(r.la)},
+      {k:'dn', label:'Per km²', num:1, v:r => r.dn, html:r => fmtD(r.dn)},
+      {k:'nc', label:'Countries', num:1, v:r => r.nc, html:r => r.nc}];
+    return `<section class="card"><div class="cardhead"><h2>The 7 continents</h2></div>${tableHTML('world', cols, rows, 'continent', stagger)}<div class="note">Antarctica’s area is only its two listed territories; the ice sheet itself is not a country in the data.</div></section>` + waterSection(stagger);
+  }
+  if(lvl === 'continent'){
+    const ct = contBy.get(sel.ct);
+    const rows = ct.list.map(c => { const h = c.h; return {key:c.c, n:c.n, cap:c.cap, p:h.p[yi], pp:yi ? h.p[yi-1] : null, m:h.m[yi], f:h.f[yi], lang:c.lang,
+      la:c.la, dn:dens(h.p[yi], c.la), br:h.b[yi] != null ? h.b[yi] / h.p[yi] * 1000 : null, dr:h.d[yi] != null ? h.d[yi] / h.p[yi] * 1000 : null}; });
+    const cols = [
+      {k:'n', label:'Country', v:r => r.n, html:r => `<span class="nm">${esc(r.n)}</span><span class="sb">${esc(r.cap || '')}</span>`},
+      {k:'p', label:'Population', num:1, def:1, v:r => r.p, html:r => `${fmt(r.p)}<span class="sb">${dpct(r.p, r.pp)}</span>`},
+      {k:'mf', label:'Male / Female', num:1, v:r => r.m == null ? null : r.m / (r.m + r.f), html:r => r.m == null ? '<span class="sb">no split</span>' : `<span class="mfv">${(r.m / (r.m + r.f) * 100).toFixed(1)}%<span class="split"><i style="width:${r.m / (r.m + r.f) * 100}%"></i><i style="flex:1"></i></span></span><span class="sb">${compact(r.m)} / ${compact(r.f)}</span>`},
+      {k:'la', label:'Land km²', num:1, v:r => r.la, html:r => fmtA(r.la)},
+      {k:'dn', label:'Per km²', num:1, v:r => r.dn, html:r => fmtD(r.dn)},
+      {k:'lang', label:'Language', v:r => r.lang, html:r => esc(r.lang)},
+      {k:'br', label:'Births ‰', num:1, v:r => r.br, html:r => r.br == null ? '—' : r.br.toFixed(1)},
+      {k:'dr', label:'Deaths ‰', num:1, v:r => r.dr, html:r => r.dr == null ? '—' : r.dr.toFixed(1)}];
+    return `<section class="card"><div class="cardhead"><h2>Countries in ${esc(ct.n)} <span style="color:var(--muted);font-weight:500">(${ct.list.length})</span></h2><span class="chip src">World Bank ${YEARS[yi]}</span></div>${tableHTML('cont', cols, rows, 'country', stagger)}<div class="note">‰ = per 1,000 people per year. Density is people per km² of land.</div></section>` + waterSection(stagger);
+  }
+  const P = countryPlaces(sel.c);
+  if(!P) return `<section class="card"><div class="note">Loading states, provinces and cities…</div></section>`;
+  const r = ratio(cBy.get(sel.c), yi), rp = yi ? ratio(cBy.get(sel.c), yi-1) : null;
+  if(lvl === 'country'){
+    if(!P.states.length) return `<section class="card"><div class="cardhead"><h2>Subdivisions</h2></div><div class="note">No cities of 15,000+ people are listed for ${esc(cBy.get(sel.c).n)}.</div></section>`;
+    const rows = P.states.map((s, i) => ({key:i, n:s[0], t:s[1], cc:s[2], p:s[3]*r, lc:s[8], a:s[10], dn:dens(s[3]*r, s[10])}));
+    const cols = [
+      {k:'n', label:'State / province', v:r => r.n, html:r => `<span class="nm">${esc(r.n)}</span><span class="sb">Largest: ${esc(r.lc)}</span>`},
+      {k:'t', label:'Type', v:r => r.t, html:r => `<span class="sb" style="font-size:12.5px">${esc(r.t)}</span>`},
+      {k:'cc', label:'Cities', num:1, v:r => r.cc, html:r => r.cc},
+      {k:'p', label:'Pop. in listed cities', num:1, def:1, v:r => r.p, html:r => fmt(Math.round(r.p))},
+      {k:'a', label:'Area km²', num:1, v:r => r.a, html:r => fmtA(r.a)},
+      {k:'dn', label:'Per km²', num:1, v:r => r.dn, html:r => fmtD(r.dn)}];
+    return `<section class="card"><div class="cardhead"><h2>States & provinces <span style="color:var(--muted);font-weight:500">(${P.states.length})</span></h2><span class="chip est">${yi === LAST ? 'Listed cities 15k+' : 'Estimated for ' + YEARS[yi]}</span></div>${tableHTML('country', cols, rows, 'state', stagger)}
+      <div class="note">Population counts only the cities of 15,000+ people listed in the dataset, not every resident of the subdivision, so “per km²” here is listed-city people per km².</div></section>` + waterSection(stagger);
+  }
+  const idx = P.byState[sel.s]; const stTot = d3.sum(idx, i => P.cities[i][2]);
+  const rows = idx.map(i => { const c = P.cities[i]; return {key:i, n:c[1], cap:c[9], p:c[2]*r, sh:c[2] / stTot, a:c[10], dn:dens(c[2]*r, c[10])}; });
+  const cols = [
+    {k:'n', label:'City', v:r => r.n, html:r => `<span class="nm">${esc(r.n)}</span>${r.cap ? ' <span class="chip cap">Capital</span>' : ''}`},
+    {k:'p', label:'Population', num:1, def:1, v:r => r.p, html:r => fmt(Math.round(r.p))},
+    {k:'sh', label:'Share of state', num:1, v:r => r.sh, html:r => (r.sh * 100).toFixed(1) + '%'},
+    {k:'a', label:'Area km²', num:1, v:r => r.a, html:r => fmtA(r.a)},
+    {k:'dn', label:'Per km²', num:1, v:r => r.dn, html:r => fmtD(r.dn)}];
+  const title = lvl === 'city' ? `Other cities in ${esc(P.states[sel.s][0])}` : `Cities <span style="color:var(--muted);font-weight:500">(${idx.length})</span>`;
+  return `<section class="card"><div class="cardhead"><h2>${title}</h2><span class="chip src">${yi === LAST ? 'Latest available' : 'Estimated for ' + YEARS[yi]}</span></div>${tableHTML('state', cols, rows, 'city', stagger)}</section>`;
+}
+
+let waterTab = 'Ocean';
+function waterSection(stagger){
+  if(!FEATS.length) return `<section class="card" id="watercard"><div class="cardhead"><h2>Oceans, seas, lakes & islands</h2></div><div class="note">Loading water bodies and islands…</div></section>`;
+  const lvl = sel.level; let pool = FEATS, where = 'the world';
+  if(lvl === 'continent'){ pool = FEATS.filter(f => f.cts.includes(sel.ct)); where = sel.ct; }
+  if(lvl === 'country'){ const n = cBy.get(sel.c).n; pool = FEATS.filter(f => f.cs.includes(n)); where = n; }
+  const counts = d3.rollup(pool, v => v.length, f => f.cat);
+  if(!counts.get(waterTab)) waterTab = CAT_ORDER.find(c => counts.get(c)) || waterTab;
+  const rows = pool.filter(f => f.cat === waterTab).map(f => ({key:f.i, n:f.n, t:f.type, a:f.a, nc:f.cs.length, cs:f.cs, cts:f.cts.join(', ')}));
+  const cols = [
+    {k:'n', label:'Name', v:r => r.n, html:r => `<span class="nm">${esc(r.n)}</span><span class="sb">${esc(r.t)}</span>`},
+    {k:'a', label:'Area km²', num:1, def:1, v:r => r.a, html:r => fmtA(r.a)},
+    {k:'nc', label:'Countries', num:1, v:r => r.nc, html:r => r.nc ? `${r.nc}<span class="sb">${esc(r.cs.slice(0, 2).join(', '))}${r.nc > 2 ? '…' : ''}</span>` : '—'},
+    {k:'cts', label:'Continents', v:r => r.cts, html:r => `<span class="sb" style="font-size:12.5px">${esc(r.cts || '—')}</span>`}];
+  return `<section class="card" id="watercard"><div class="cardhead"><h2>Oceans, seas, lakes & islands <span style="color:var(--muted);font-weight:500">· ${esc(where)}</span></h2>
+    <div class="seg" role="group" aria-label="Water and island type">${CAT_ORDER.map(c => `<button data-wtab="${esc(c)}" aria-pressed="${c === waterTab}" ${counts.get(c) ? '' : 'disabled'}>${CAT_PLURAL[c]} <span style="opacity:.6">${counts.get(c) || 0}</span></button>`).join('')}</div></div>
+    ${rows.length ? tableHTML('water-' + waterTab, cols, rows, 'feature', stagger) : '<div class="note">None recorded here.</div>'}
+    <div class="note">${waterTab === 'Ocean' ? 'Ocean areas: CIA World Factbook.' : waterTab === 'Island' ? 'Island areas are land only, calculated from Natural Earth outlines.' : 'Areas calculated from Natural Earth outlines.'} Natural Earth lists features visible at world scale, not every small lake or island.</div></section>`;
+}
+function featurePanel(reason){
+  const F = FEATS[sel.f]; if(!F){ content.innerHTML = '<div class="card"><div class="note">Loading…</div></div>'; return; }
+  const same = FEATS.filter(f => f.cat === F.cat);
+  const top = same.slice(0, 10); if(!top.includes(F)) top.push(F);
+  const max = d3.max(top, f => f.a || 0) || 1;
+  const near = COUNTRIES.filter(c => c.la).reduce((b, c) => !b || Math.abs(Math.log(c.la / F.a)) < Math.abs(Math.log(b.la / F.a)) ? c : b, null);
+  const cChips = F.cs.map(n => { const c = COUNTRIES.find(x => x.n === n); return c ? `<button class="pill" data-go-country="${c.c}">${esc(n)}</button>` : `<span class="pill off">${esc(n)}</span>`; }).join('') || '<span class="note">None recorded</span>';
+  const ctChips = F.cts.map(n => `<button class="pill" data-go-cont="${esc(n)}">${esc(n)}</button>`).join('') || '<span class="note">—</span>';
+  content.classList.remove('enter');
+  content.innerHTML = `<div class="titlerow"><div><div class="eyebrow">${esc(F.cat === 'Sea & coastal water' ? 'Sea & coastal water' : F.cat)} · ${esc(F.type)}</div><h1>${esc(F.n)}</h1></div><div class="chips"><span class="chip src">${esc(F.src || 'Natural Earth')}</span></div></div>
+    <div class="stats">
+      <div class="tile main"><div><div class="lbl">${F.cat === 'Island' ? 'Land area' : 'Surface area'}</div><div class="num" data-k="fa">${F.a ? '' : '—'}</div></div><div class="delta">${F.a ? fmt(Math.round(F.a * 0.386102)) + ' sq mi' : 'not recorded'}</div></div>
+      <div class="tile"><div class="lbl">Rank</div><div class="num">#${F.rank}</div><div class="delta">of ${F.of} ${esc(CAT_PLURAL[F.cat].toLowerCase())}</div></div>
+      <div class="tile"><div class="lbl">Countries</div><div class="num">${F.cs.length || '—'}</div><div class="delta">${F.cs.length ? 'border or contain it' : 'none listed'}</div></div>
+      <div class="tile"><div class="lbl">Continents</div><div class="num">${F.cts.length || '—'}</div><div class="delta">${esc(F.cts.slice(0, 2).join(', ') || '—')}</div></div>
+      <div class="tile"><div class="lbl">About the size of</div><div class="num" style="font-size:16px">${near && F.a ? esc(near.n) : '—'}</div><div class="delta">${near && F.a ? fmtA(near.la) + ' km² of land' : ''}</div></div>
+    </div>
+    <section class="card"><div class="cardhead"><h2>Largest ${esc(CAT_PLURAL[F.cat].toLowerCase())} by area</h2></div>
+      <div class="bars">${top.map(f => `<div class="bar ${f === F ? 'on' : ''}" data-type="feature" data-key="${f.i}"><span class="bn">${f.rank}. ${esc(f.n)}</span><span class="bt"><i style="width:${Math.max(0.6, (f.a || 0) / max * 100)}%"></i></span><span class="bv">${fmtA(f.a)}</span></div>`).join('')}</div>
+      <div class="note">km². ${F.cat === 'Ocean' ? 'Official ocean areas (CIA World Factbook).' : 'Calculated from Natural Earth outlines (WGS84 geodesic).'}</div></section>
+    <section class="card"><dl class="facts">
+      <div style="grid-column:1/-1"><dt>Bordering or containing countries</dt><dd class="pills">${cChips}</dd></div>
+      <div style="grid-column:1/-1"><dt>Continents</dt><dd class="pills">${ctChips}</dd></div>
+      <div><dt>Type</dt><dd>${esc(F.type)}</dd></div>
+      <div><dt>Centre</dt><dd style="font-family:var(--f-mono);font-size:12.5px">${F.lat != null ? `${Math.abs(F.lat).toFixed(2)}°${F.lat >= 0 ? 'N' : 'S'}, ${Math.abs(F.lon).toFixed(2)}°${F.lon >= 0 ? 'E' : 'W'}` : '—'}</dd></div>
+      <div><dt>Wikidata</dt><dd>${F.wd ? `<a href="https://www.wikidata.org/wiki/${esc(F.wd)}" target="_blank" rel="noopener">${esc(F.wd)} ↗</a>` : '—'}</dd></div>
+      <div><dt>Area source</dt><dd>${esc(F.src || '—')}</dd></div>
+    </dl></section>`;
+  if(reason === 'sel' && !reduced){ void content.offsetWidth; content.classList.add('enter'); }
+  const el = content.querySelector('[data-k="fa"]');
+  if(el && F.a){ const t0 = performance.now(), dur = reduced ? 0 : 900; el.classList.toggle('long', fmt(Math.round(F.a)).length > 11);
+    const step = now => { const e = dur ? d3.easeCubicOut(Math.min(1, (now - t0) / dur)) : 1; el.textContent = fmt(Math.round(F.a * e)); if(e < 1) requestAnimationFrame(step); }; requestAnimationFrame(step); }
+}
+function headHTML(){
+  const lvl = sel.level; let eyebrow, name, chips = srcChips(), facts = '';
+  if(lvl === 'world'){ eyebrow = `Planet Earth · ${COUNTRIES.length} countries & territories`; name = 'World'; }
+  else if(lvl === 'continent'){ const c = contBy.get(sel.ct); eyebrow = `Continent · ${c.nc} countries · ${fmt(c.cities)} cities listed`; name = c.n; }
+  else if(lvl === 'country'){
+    const c = cBy.get(sel.c); eyebrow = `Country · ${c.ct}`; name = c.n;
+    const h = c.h; const ng = h.b[yi] != null ? h.b[yi] - h.d[yi] : null;
+    facts = `<section class="card"><dl class="facts">
+      <div><dt>Capital</dt><dd>${esc(c.cap || '—')}</dd></div>
+      <div><dt>Popular language</dt><dd>${esc(c.lang)}</dd></div>
+      <div><dt>Other languages</dt><dd>${esc(c.ol || '—')}</dd></div>
+      <div><dt>Birth rate</dt><dd>${h.b[yi] != null ? (h.b[yi] / h.p[yi] * 1000).toFixed(1) + ' per 1,000' : '—'}</dd></div>
+      <div><dt>Death rate</dt><dd>${h.d[yi] != null ? (h.d[yi] / h.p[yi] * 1000).toFixed(1) + ' per 1,000' : '—'}</dd></div>
+      <div><dt>Natural growth / yr</dt><dd class="${ng < 0 ? 'dn' : ''}">${ng == null ? '—' : (ng > 0 ? '+' : '') + fmt(ng)}</dd></div>
+    </dl></section>`;
+  } else if(lvl === 'state'){
+    const P = countryPlaces(sel.c); const s = P.states[sel.s]; eyebrow = `${s[1]} · ${cBy.get(sel.c).n}`; name = s[0];
+    facts = `<section class="card"><dl class="facts"><div><dt>Cities listed (15k+)</dt><dd>${s[2]}</dd></div><div><dt>Largest city</dt><dd>${esc(s[8])}</dd></div><div><dt>Popular language</dt><dd>${esc(cBy.get(sel.c).lang)}</dd></div></dl></section>`;
+  } else {
+    const P = countryPlaces(sel.c); const c = P.cities[sel.city]; const s = P.states[c[0]]; const C = cBy.get(sel.c);
+    eyebrow = `City · ${s[0]}, ${C.n}`; name = c[1];
+    if(c[9]) chips = `<span class="chip cap">★ Capital of ${esc(C.n)}</span>` + chips;
+    const rank = P.byState[c[0]].filter(i => P.cities[i][2] > c[2]).length + 1;
+    facts = `<section class="card"><dl class="facts">
+      <div><dt>Popular language</dt><dd>${esc(c[11] || C.lang)}</dd></div>
+      <div><dt>Rank in ${esc(s[1].toLowerCase())}</dt><dd>#${rank} of ${P.byState[c[0]].length}</dd></div>
+      <div><dt>Share of country</dt><dd>${(c[2] / C.h.p[LAST] * 100).toFixed(2)}%</dd></div>
+      <div><dt>Coordinates</dt><dd style="font-family:var(--f-mono);font-size:12.5px">${Math.abs(c[7]).toFixed(2)}°${c[7] >= 0 ? 'N' : 'S'}, ${Math.abs(c[8]).toFixed(2)}°${c[8] >= 0 ? 'E' : 'W'}</dd></div>
+    </dl><div class="note">Male/female and births/deaths are estimated from ${esc(C.n)}’s national sex ratio and crude rates.</div></section>`;
+  }
+  return {title:`<div class="titlerow"><div><div class="eyebrow">${esc(eyebrow)}</div><h1>${esc(name)}</h1></div><div class="chips">${chips}</div></div>`, facts};
+}
+
+function renderPanel(reason){
+  const st = panel.scrollTop;
+  if(sel.level === 'feature'){ featurePanel(reason); if(reason !== 'sel') panel.scrollTop = st; return; }
+  if((sel.level === 'state' || sel.level === 'city') && !countryPlaces(sel.c)){
+    content.innerHTML = `<div class="card"><div class="note">Loading states, provinces and cities…</div></div>`; return;
+  }
+  const v = valuesFor(sel, yi), pv = yi ? valuesFor(sel, yi-1) : null;
+  const {title, facts} = headHTML();
+  content.classList.remove('enter');
+  content.innerHTML = title + tilesHTML(v, pv) + (sel.level === 'city' ? facts + chartHTML() : chartHTML() + facts) + listSection(reason === 'sel');
+  if(reason === 'sel' && !reduced){ void content.offsetWidth; content.classList.add('enter'); }
+  if(reason !== 'sel') panel.scrollTop = st;
+  animateNums(v); drawChart(reason === 'sel'); syncRows();
+}
+
+content.addEventListener('click', e => {
+  const m = e.target.closest('[data-metric]'); if(m){ chartMetric = m.dataset.metric; const st = panel.scrollTop; renderPanel('metric'); panel.scrollTop = st; return; }
+  const s = e.target.closest('[data-sort]'); if(s){ const id = s.closest('table').dataset.id; const cur = sortState[id]; const k = s.dataset.sort;
+    sortState[id] = cur && cur.k === k ? {k, dir:-cur.dir} : {k, dir:(k === 'n' || k === 'lang' || k === 't') ? 1 : -1}; renderPanel('sort'); return; }
+  if(e.target.closest('[data-more]')){ listLimit = 1e6; renderPanel('sort'); return; }
+  const wt = e.target.closest('[data-wtab]'); if(wt){ waterTab = wt.dataset.wtab; listLimit = 150; renderPanel('sort'); return; }
+  const gc = e.target.closest('[data-go-country]'); if(gc){ const c = cBy.get(gc.dataset.goCountry); go({level:'country', ct:c.ct, c:c.c}); return; }
+  const gt = e.target.closest('[data-go-cont]'); if(gt){ if(contBy.has(gt.dataset.goCont)) go({level:'continent', ct:gt.dataset.goCont}); return; }
+  const bar = e.target.closest('.bar[data-key]'); if(bar){ go({level:'feature', f:+bar.dataset.key}); return; }
+  const tr = e.target.closest('tbody tr'); if(tr) openRow(tr);
+});
+content.addEventListener('keydown', e => { const tr = e.target.closest('tbody tr'); if(tr && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); openRow(tr); } });
+const numKey = type => type === 'state' || type === 'city' || type === 'feature';
+function openRow(tr){ const type = tr.dataset.type, key = tr.dataset.key; const h = {type, key: numKey(type) ? +key : key}; openHover(h); if(innerWidth <= 860) stage.scrollIntoView({behavior: reduced ? 'auto' : 'smooth', block:'start'}); }
+content.addEventListener('mouseover', e => { const tr = e.target.closest('tbody tr, .bar[data-key]'); if(!tr) return; const type = tr.dataset.type; setHover({type, key:numKey(type) ? +tr.dataset.key : tr.dataset.key}); });
+content.addEventListener('mouseleave', () => setHover(null));
+content.addEventListener('focusin', e => { const tr = e.target.closest('tbody tr'); if(tr){ const type = tr.dataset.type; setHover({type, key:numKey(type) ? +tr.dataset.key : tr.dataset.key}); } });
+
+/* ---------------- timeline ---------------- */
+const yr = $('#year');
+$('#ticks').innerHTML = YEARS.map((y, i) => `<span data-i="${i}">${y}</span>`).join('');
+$('#ticks').addEventListener('click', e => { const s = e.target.closest('[data-i]'); if(s) setYear(+s.dataset.i); });
+function setYear(i){
+  i = Math.max(0, Math.min(LAST, i)); if(i === yi && yr.value == YEARS[i]) return;
+  yi = i; yr.value = YEARS[i]; yr.style.setProperty('--pct', (i / LAST * 100) + '%');
+  $('#yearbig').textContent = YEARS[i];
+  document.querySelectorAll('#ticks span').forEach((s, k) => s.classList.toggle('on', k === i));
+  renderPanel('year'); updateLegend(); dirty = true;
+}
+yr.addEventListener('input', () => { stopPlay(); setYear(+yr.value - YEARS[0]); });
+let playT = null;
+function stopPlay(){ if(playT){ clearInterval(playT); playT = null; $('#playico').setAttribute('d', 'M3 1.5v11l9-5.5z'); $('#play').setAttribute('aria-label', 'Play timeline'); } }
+$('#play').onclick = () => {
+  if(playT) return stopPlay();
+  if(yi === LAST) setYear(0);
+  $('#playico').setAttribute('d', 'M2.5 1.5h3v11h-3zM8.5 1.5h3v11h-3z'); $('#play').setAttribute('aria-label', 'Pause timeline');
+  playT = setInterval(() => { if(yi >= LAST) return stopPlay(); setYear(yi + 1); }, 1000);
+};
+
+/* ---------------- search ---------------- */
+const IDX = [];
+CONT.forEach(c => IDX.push({t:'Continent', n:c.n, k:norm(c.n), sub:'', p:c.h.p[LAST], s:{level:'continent', ct:c.n}}));
+COUNTRIES.forEach(c => IDX.push({t:'Country', n:c.n, k:norm(c.n), sub:c.ct, p:c.h.p[LAST], s:{level:'country', ct:c.ct, c:c.c}}));
+function buildSearchPlaces(){
+  for(const iso in places.states){ const C = cBy.get(iso); if(!C) continue;
+    places.states[iso].forEach((s, i) => IDX.push({t:'State', n:s[0], k:norm(s[0]), sub:C.n, p:s[3], s:{level:'state', ct:C.ct, c:iso, s:i}})); }
+  for(const iso in places.cities){ const C = cBy.get(iso); if(!C) continue; const S = places.states[iso] || [];
+    places.cities[iso].forEach((c, i) => IDX.push({t:'City', n:c[1], k:norm(c[1]), sub:(S[c[0]] ? S[c[0]][0] + ', ' : '') + C.n, p:c[2], s:{level:'city', ct:C.ct, c:iso, s:c[0], city:i}})); }
+}
+const q = $('#q'), res = $('#results'); let hits = [], active = 0;
+function doSearch(){
+  const s = norm(q.value.trim()); if(!s){ res.hidden = true; $('#searchbox').setAttribute('aria-expanded', 'false'); return; }
+  const out = [];
+  for(const it of IDX){ const i = it.k.indexOf(s); if(i < 0) continue; out.push({it, score:(it.k === s ? 0 : i === 0 ? 1 : 2) * 1e12 - (it.area ? it.p * 30 : it.p) - (it.t === 'Continent' ? 1e11 : it.t === 'Country' ? 5e10 : 0)}); }
+  out.sort((a, b) => a.score - b.score); hits = out.slice(0, 10).map(o => o.it); active = 0;
+  res.innerHTML = hits.length ? hits.map((h, i) => `<button role="option" aria-selected="${i === active}" data-i="${i}"><span class="rt">${h.t}</span><span class="rn">${esc(h.n)} <span class="rs">${esc(h.sub)}</span></span><span class="rp">${h.area ? compact(h.p) + ' km²' : compact(h.p)}</span></button>`).join('')
+    : `<div class="empty">No place matches “${esc(q.value)}”.${places ? '' : ' States and cities are still loading.'}</div>`;
+  res.hidden = false; $('#searchbox').setAttribute('aria-expanded', 'true');
+}
+function choose(i){ const h = hits[i]; if(!h) return; res.hidden = true; q.value = ''; q.blur(); if(mode === 'globe') setMode('flat'); go(h.s, {fromList:true}); }
+q.addEventListener('input', doSearch);
+q.addEventListener('keydown', e => {
+  if(res.hidden) return;
+  if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); active = (active + (e.key === 'ArrowDown' ? 1 : -1) + hits.length) % Math.max(1, hits.length); res.querySelectorAll('button').forEach((b, k) => b.setAttribute('aria-selected', k === active)); }
+  else if(e.key === 'Enter'){ e.preventDefault(); choose(active); }
+  else if(e.key === 'Escape'){ res.hidden = true; }
+});
+res.addEventListener('mousedown', e => { const b = e.target.closest('[data-i]'); if(b){ e.preventDefault(); choose(+b.dataset.i); } });
+q.addEventListener('blur', () => setTimeout(() => res.hidden = true, 120));
+q.addEventListener('focus', () => { if(q.value.trim()) doSearch(); });
+
+/* ---------------- contact ---------------- */
+$('#copymail').onclick = async () => { const b = $('#copymail');
+  try { await navigator.clipboard.writeText('pujiverse@gmail.com'); b.textContent = 'Copied'; }
+  catch(e){ const r = document.createRange(); r.selectNodeContents($('#mail')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected — press Ctrl+C'; }
+  setTimeout(() => b.textContent = 'Copy email', 1800); };
+
+/* ---------------- boot ---------------- */
+resize();
+yr.style.setProperty('--pct', '100%'); document.querySelectorAll('#ticks span')[LAST].classList.add('on');
+renderCrumbs(); renderPanel('sel'); updateLegend(); updateHint();
+// intro: globe grows in from a distance
+const target = globeView(sel); Object.assign(view, target, {scale: target.scale * 0.55, rl: target.rl - 60});
+tweenTo(target, 1800);
+$('#loading').classList.add('gone');
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
