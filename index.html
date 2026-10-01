@@ -47,6 +47,13 @@ button{font:inherit;color:inherit}
 .brand{display:flex;align-items:center;gap:10px;min-width:0}
 .brand svg{flex:none}
 .brand b{font:700 20px/1 var(--f-display);letter-spacing:-.01em}
+.brandlink{color:inherit;text-decoration:none}
+.brandlink:hover b{color:var(--accent)}
+.homebtn{flex:none;margin-left:6px;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--space-line);background:var(--space-2);color:var(--on-space);font:600 12.5px/1 var(--f-body);text-decoration:none;white-space:nowrap;transition:border-color .2s,box-shadow .2s,color .2s}
+.homebtn span{color:var(--accent);font-size:15px;line-height:1}
+.homebtn:hover{border-color:var(--accent);box-shadow:0 0 16px var(--accent-soft);color:#fff}
+.foot a{color:var(--accent-ink)}
+.foot a.brandlink{color:var(--ink)}
 .brand small{display:block;font:500 11px/1.2 var(--f-mono);color:var(--on-space-dim);letter-spacing:.06em;text-transform:uppercase;margin-top:3px}
 .search{position:relative}
 .search input{width:100%;height:38px;border-radius:10px;border:1px solid var(--space-line);background:var(--space-2);color:var(--on-space);padding:0 12px 0 34px;font:inherit}
@@ -240,7 +247,8 @@ body{margin:0}
   <header class="topbar">
     <div class="brand">
       <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><defs><radialGradient id="bg1" cx="35%" cy="30%"><stop offset="0" stop-color="#3a78b8"/><stop offset="1" stop-color="#0b1633"/></radialGradient></defs><circle cx="17" cy="17" r="15" fill="url(#bg1)" stroke="#f09a3e" stroke-width="1.2"/><ellipse cx="17" cy="17" rx="6.5" ry="15" fill="none" stroke="#f09a3e" stroke-opacity=".7"/><path d="M2 17h30M4.5 10h25M4.5 24h25" stroke="#f09a3e" stroke-opacity=".45" fill="none"/><circle cx="21" cy="12" r="1.8" fill="#ffd9a8"/><circle cx="12" cy="21" r="1.2" fill="#ffd9a8"/></svg>
-      <div><b>Pujiverse</b><small>World Atlas · 2015–2025</small></div>
+      <div><a class="brandlink" href="https://www.pujiverse.com/" title="Go to PUJIVERSE home"><b>Pujiverse</b></a><small>World Atlas · 2015–2025</small></div>
+      <a class="homebtn" href="https://www.pujiverse.com/" title="PUJIVERSE home" aria-label="PUJIVERSE home"><span aria-hidden="true">⌂</span> Home</a>
     </div>
     <div class="search" role="combobox" aria-expanded="false" aria-haspopup="listbox" id="searchbox">
       <svg class="ico" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="#e7ecf6" stroke-width="1.6"/><path d="M11 11l3.5 3.5" stroke="#e7ecf6" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -273,7 +281,7 @@ body{margin:0}
     <aside class="panel" id="panel" aria-live="polite">
       <div class="sheet-head"><nav class="crumbs" id="crumbs" aria-label="Breadcrumb"></nav></div>
       <div class="content" id="content"></div>
-      <footer class="foot"><div><b>Pujiverse</b> World Atlas</div><div class="mail"><span id="mail">pujiverse@gmail.com</span><button id="copymail" type="button">Copy email</button></div><p>Country figures: World Bank. Cities &amp; coordinates: GeoNames. Borders: Natural Earth.</p></footer>
+      <footer class="foot"><div><a class="brandlink" href="https://www.pujiverse.com/" title="Go to PUJIVERSE home"><b>Pujiverse</b></a> World Atlas</div><div class="mail"><span id="mail">pujiverse@gmail.com</span><button id="copymail" type="button">Copy email</button></div><p>© 2026 <a class="brandlink" href="https://www.pujiverse.com/"><b>PUJIVERSE</b></a>. Pujiverse World Atlas is a PUJIVERSE project. <a href="https://www.pujiverse.com/">Visit pujiverse.com →</a></p><p>Country figures: World Bank. Cities &amp; coordinates: GeoNames. Borders: Natural Earth.</p></footer>
     </aside>
   </main>
 </div>
